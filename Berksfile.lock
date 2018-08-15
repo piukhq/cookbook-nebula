@@ -1,0 +1,15 @@
+DEPENDENCIES
+  apt (~> 6.1.4)
+  line (= 2.0.0)
+  nebula
+    path: .
+    metadata: true
+
+GRAPH
+  apt (6.1.4)
+  cron (6.2.0)
+  line (2.0.0)
+  nebula (0.1.0)
+    apt (>= 0.0.0)
+    cron (>= 0.0.0)
+    line (>= 0.0.0)
