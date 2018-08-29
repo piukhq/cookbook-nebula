@@ -405,9 +405,7 @@ replace_or_add 'configure_FileCreateMode_in_/etc/rsyslog.conf' do
   replace_only true
 end
 
-#TODO: Benchmark 4.2.1.4
-
-#TODO: Benchmark 4.3
+#TODO: Benchmark 4.2.1.4 - 4.3
 
 #Benchmark 5.1.1
 service 'cron' do
@@ -451,7 +449,188 @@ file '/etc/ssh/sshd_config' do
 end
 
 #Benchmark 5.2.2
-append_if_no_line 'configure_Protocol_in_/etc/ssh/sshd_config' do
+replace_or_add 'configure_Protocol_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
+  pattern 'Protocol '
   line 'Protocol 2'
+  replace_only true
 end
+
+#Benchmark 5.2.3
+replace_or_add 'configure_LogLevel_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'LogLevel '
+  line 'LogLevel INFO'
+  replace_only true
+end
+
+#Benchmark 5.2.4
+replace_or_add 'configure_X11Forwarding_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'X11Forwarding '
+  line 'X11Forwarding no'
+  replace_only true
+end
+
+#Benchmark 5.2.5
+replace_or_add 'configure_MaxAuthTries_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'MaxAuthTries '
+  line 'MaxAuthTries 4'
+  replace_only true
+end
+
+#Benchmark 5.2.6
+replace_or_add 'configure_IgnoreRhosts_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'IgnoreRhosts '
+  line 'IgnoreRhosts yes'
+  replace_only true
+end
+
+#Benchmark 5.2.7
+replace_or_add 'configure_HostbasedAuthentication_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'HostbasedAuthentication '
+  line 'HostbasedAuthentication no'
+  replace_only true
+end
+
+#Benchmark 5.2.8
+replace_or_add 'configure_PermitRootLogin_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'PermitRootLogin '
+  line 'PermitRootLogin no'
+  replace_only true
+end
+
+#Benchmark 5.2.9
+replace_or_add 'configure_PermitEmptyPasswords_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'PermitEmptyPasswords '
+  line 'PermitEmptyPasswords no'
+  replace_only true
+end
+
+#Benchmark 5.2.10
+replace_or_add 'configure_PermitUserEnvironment_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'PermitUserEnvironment '
+  line 'PermitUserEnvironment no'
+  replace_only true
+end
+
+#TODO:Benchmark 5.2.11
+
+#Benchmark 5.2.12
+[
+  'ClientAliveInterval 300',
+  'ClientAliveCountMax 0'
+].each do |line|
+  replace_or_add "configure_#{line}_in_/etc/ssh/sshd_config" do
+    path '/etc/ssh/sshd_config'
+    pattern 'PermitUserEnvironment '
+    line 'PermitUserEnvironment no'
+    replace_only true
+  end
+end
+
+#Benchmark 5.2.13
+replace_or_add 'configure_LoginGraceTime_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'LoginGraceTime '
+  line 'LoginGraceTime 60'
+  replace_only true
+end
+
+#TODO:Benchmark 5.2.14
+
+#Benchmark 5.2.15
+replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  pattern 'Banner '
+  line 'Banner /etc/issue.net'
+  replace_only true
+end
+
+#Benchmark 5.3.1
+package 'libpam-pwquality' do
+  action :install
+end
+
+replace_or_add 'configure_password_requisite_in_/etc/pam.d/common-password' do
+  path '/etc/pam.d/common-password'
+  pattern 'password requisite'
+  line 'password requisite pam_pwquality.so retry=3'
+  replace_only true
+end
+
+replace_or_add 'configure_minlen_in_/etc/security/pwquality.confd' do
+  path '/etc/security/pwquality.conf'
+  pattern 'minlen = '
+  line 'minlen = 14'
+  replace_only true
+end
+
+[
+  'dcredit',
+  'ucredit',
+  'ocredit',
+  'lcredit'
+].each do |line|
+  replace_or_add "configure_#{line}_in_/etc/security/pwquality.confd" do
+    path '/etc/security/pwquality.conf'
+    pattern "#{line} ="
+    line "#{line} = -1"
+    replace_only true
+  end
+end
+
+#Benchmark 5.3.2
+replace_or_add 'configure_auth_required_in_/etc/pam.d/common-auth' do
+  path '/etc/pam.d/common-auth'
+  pattern 'auth required'
+  line 'auth required pam_tally2.so onerr=fail audit silent deny=5 unlock_time=900'
+  replace_only true
+end
+
+#Benchmark 5.3.3
+replace_or_add 'configure_password_required_in_/etc/pam.d/common-password' do
+  path '/etc/pam.d/common-password'
+  pattern 'password required'
+  line 'password required pam_pwhistory.so remember=5'
+  replace_only true
+end
+
+#Benchmark 5.3.4
+replace_or_add 'configure_password_required_in_/etc/pam.d/common-password' do
+  path '/etc/pam.d/common-password'
+  pattern 'password [success= default=ignore]'
+  line 'password [success=1 default=ignore] pam_unix.so sha512'
+  replace_only true
+end
+
+#Benchmark 5.4.1.1
+replace_or_add 'configure_PASS_MAX_DAYS_in_/etc/login.defs' do
+  path '/etc/login.defs'
+  pattern 'PASS_MAX_DAYS '
+  line 'PASS_MAX_DAYS 90'
+  replace_only true
+end
+
+#TODO:Benchmark 5.4.2 - 5.6
+
+#Benchmark 6.1.2 - 6.1.9
+%w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
+  file f do
+    mode 0644
+  end
+end
+
+%w(/etc/shadow /etc/gshadow /etc/shadow- /etc/gshadow-).each do |f|
+  file f do
+    mode 0640
+  end
+end
+
+#TODO:Benchmark 6.1.10 - 6.2.20
