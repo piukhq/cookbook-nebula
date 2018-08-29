@@ -3,6 +3,21 @@
 # "feature" down to a specific spec in the benchmarks
 
 include_recipe 'apt'
+# URL: https://packages.chef.io/files/stable/inspec/2.2.70/ubuntu/16.04/inspec_2.2.70-1_amd64.deb
+
+directory '/usr/local/src/inspec'
+remote_file '/usr/local/src/inspec/inspec_2.2.70-1_amd64.deb' do
+  source 'https://packages.chef.io/files/stable/inspec/2.2.70/ubuntu/16.04/inspec_2.2.70-1_amd64.deb'
+end
+
+dpkg_package 'inspec_2.2.70-1_amd64.deb' do
+  source '/usr/local/src/inspec/inspec_2.2.70-1_amd64.deb'
+end
+
+directory '/usr/local/src/inspec'
+template '/usr/local/src/inspec/cis.rb' do
+  source 'spec.rb.erb'
+end
 
 # Benchmarks: 1.1.1.1 - 1.1.1.6
 file '/etc/modprobe.d/disabled_filesystems.conf' do
@@ -145,6 +160,8 @@ package 'chrony' do
   action :install
 end
 
+# TODO: Benchmark 2.2.1.3
+
 # Benchmark: 2.2.2
 package 'xserver-xorg' do
   action :remove
@@ -264,35 +281,7 @@ package 'iptables' do
   action :upgrade
 end
 
-#Benchmark 4.1.1.1 - 4.1.1.3
-directory '/etc/audit' do
-  owner 'root'
-  group 'root'
-  mode 0644
-  action :create
-end
-
-file '/etc/audit/auditd.conf' do
-  owner 'root'
-  group 'root'
-  mode 0644
-  action :create_if_missing
-end
-
-[
-  'max_log_file = 5',
-  'space_left_action = email',
-  'action_mail_acct = root',
-  'admin_space_left_action = halt',
-  'max_log_file_action = keep_logs'
-].each do |line|
-  append_if_no_line "add_#{line}_to_/etc/audit/auditd.conf" do
-    path '/etc/audit/auditd.conf'
-    line "#{line}"
-  end
-end
-
-#Benchmark 4.1.2
+# Benchmark 4.1.2
 package 'auditd' do
   action :install
 end
@@ -301,8 +290,8 @@ service 'auditd' do
   action :enable
 end
 
-#Benchmark 4.1.3
-add_to_list 'update-grub' do
+# Benchmark 4.1.3
+add_to_list 'enable_auditd_on_boot' do
   path '/etc/default/grub'
   pattern 'GRUB_CMDLINE_LINUX='
   delim [' ']
@@ -316,7 +305,7 @@ execute 'update-grub' do
   action :nothing
 end
 
-#Benchmark 4.1.4 - 4.1.11
+# Benchmark 4.1.4 - 4.1.11
 file '/etc/audit/audit.rules' do
   owner 'root'
   group 'root'
@@ -324,9 +313,17 @@ file '/etc/audit/audit.rules' do
   action :create_if_missing
 end
 
+replace_or_add 'set_auditd_buffer_size' do
+  path '/etc/audit/audit.rules'
+  pattern '-b 320'
+  line '-b 8192'
+end
+
 [
+  "-f 1",
+  "-i",
   "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change",
-  "-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time- change",
+  "-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change",
   "-a always,exit -F arch=b64 -S clock_settime -k time-change",
   "-a always,exit -F arch=b32 -S clock_settime -k time-change",
   "-w /etc/localtime -p wa -k time-change",
@@ -340,7 +337,6 @@ end
   "-w /etc/issue -p wa -k system-locale",
   "-w /etc/issue.net -p wa -k system-locale",
   "-w /etc/hosts -p wa -k system-locale",
-  "-w /etc/sysconfig/network -p wa -k system-locale",
   "-w /etc/apparmor/ -p wa -k MAC-policy",
   "-w /etc/apparmor.d/ -p wa -k MAC-policy",
   "-w /var/log/faillog -p wa -k logins",
@@ -363,14 +359,14 @@ end
   append_if_no_line "add_#{line}_to_/etc/audit/audit.rules" do
     path '/etc/audit/audit.rules'
     line "#{line}"
+    notifies :restart, 'service[auditd]'
   end
 end
 
 # TODO: Research Benchmark 4.1.12
 
-#Benchmark 4.1.13 - 4.1.18
+# Benchmark 4.1.13 - 4.1.18
 [
-
   "-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts",
   "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts",
   "-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete",
@@ -387,17 +383,22 @@ end
   append_if_no_line "add_#{line}_to_/etc/audit/audit.rules" do
     path '/etc/audit/audit.rules'
     line "#{line}"
+    notifies :restart, 'service[auditd]'
   end
 end
 
-#Benchmark 4.2.1.1
+# Benchmark 4.2.1.1
 service 'rsyslog' do
   action :enable
 end
 
-#TODO: Research Benchmark 4.2.1.2
+# Benchmark 4.2.1.2 & 4.2.1.4 TODO: Improve below
+file '/etc/rsyslog.d/99-graylog.conf' do
+  content "*.* @@#{node[:graylog][:connection]};RSYSLOG_SyslogProtocol23Format"
+  notifies :restart, 'service[rsyslog]', :immediately
+end
 
-#Benchmark 4.2.1.3
+# Benchmark 4.2.1.3
 replace_or_add 'configure_FileCreateMode_in_/etc/rsyslog.conf' do
   path '/etc/rsyslog.conf'
   pattern '$FileCreateMode*'
@@ -405,26 +406,24 @@ replace_or_add 'configure_FileCreateMode_in_/etc/rsyslog.conf' do
   replace_only true
 end
 
-#TODO: Benchmark 4.2.1.4 - 4.3
-
-#Benchmark 5.1.1
+# Benchmark 5.1.1
 service 'cron' do
   action :enable
 end
 
-#Benchmark 5.1.2
+# Benchmark 5.1.2
 file '/etc/crontab' do
   mode 0600
 end
 
-#Benchmark 5.1.3 - 5.1.7
+# Benchmark 5.1.3 - 5.1.7
 %w(hourly daily weekly monthly d).each do |d|
   directory "/etc/cron.#{d}" do
     mode 0700
   end
 end
 
-#Benchmark 5.1.8
+# Benchmark 5.1.8
 %w(/etc/cron.deny /etc/at.deny).each do |f|
   file f do
     action :delete
@@ -440,7 +439,7 @@ end
   end
 end
 
-#Benchmark 5.2.1
+# Benchmark 5.2.1
 file '/etc/ssh/sshd_config' do
   action :touch
   owner 'root'
@@ -448,179 +447,105 @@ file '/etc/ssh/sshd_config' do
   mode 0600
 end
 
-#Benchmark 5.2.2
+# Benchmark 5.2.2
 replace_or_add 'configure_Protocol_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'Protocol '
   line 'Protocol 2'
-  replace_only true
 end
 
-#Benchmark 5.2.3
+# Benchmark 5.2.3
 replace_or_add 'configure_LogLevel_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'LogLevel '
   line 'LogLevel INFO'
-  replace_only true
 end
 
-#Benchmark 5.2.4
+# Benchmark 5.2.4
 replace_or_add 'configure_X11Forwarding_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'X11Forwarding '
   line 'X11Forwarding no'
-  replace_only true
 end
 
-#Benchmark 5.2.5
+# Benchmark 5.2.5
 replace_or_add 'configure_MaxAuthTries_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'MaxAuthTries '
   line 'MaxAuthTries 4'
-  replace_only true
 end
 
-#Benchmark 5.2.6
+# Benchmark 5.2.6
 replace_or_add 'configure_IgnoreRhosts_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'IgnoreRhosts '
   line 'IgnoreRhosts yes'
-  replace_only true
 end
 
-#Benchmark 5.2.7
+# Benchmark 5.2.7
 replace_or_add 'configure_HostbasedAuthentication_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'HostbasedAuthentication '
   line 'HostbasedAuthentication no'
-  replace_only true
 end
 
-#Benchmark 5.2.8
+# Benchmark 5.2.8
 replace_or_add 'configure_PermitRootLogin_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'PermitRootLogin '
   line 'PermitRootLogin no'
-  replace_only true
 end
 
-#Benchmark 5.2.9
+# Benchmark 5.2.9
 replace_or_add 'configure_PermitEmptyPasswords_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'PermitEmptyPasswords '
   line 'PermitEmptyPasswords no'
-  replace_only true
 end
 
-#Benchmark 5.2.10
+# Benchmark 5.2.10
 replace_or_add 'configure_PermitUserEnvironment_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'PermitUserEnvironment '
   line 'PermitUserEnvironment no'
-  replace_only true
 end
 
-#TODO:Benchmark 5.2.11
-
-#Benchmark 5.2.12
-[
-  'ClientAliveInterval 300',
-  'ClientAliveCountMax 0'
-].each do |line|
-  replace_or_add "configure_#{line}_in_/etc/ssh/sshd_config" do
-    path '/etc/ssh/sshd_config'
-    pattern 'PermitUserEnvironment '
-    line 'PermitUserEnvironment no'
-    replace_only true
-  end
+# Benchmark 5.2.11
+append_if_no_line 'configure_MACs_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  line 'MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com'
 end
 
-#Benchmark 5.2.13
+# Benchmark 5.2.12
+replace_or_add "configure_ClientAliveInterval_in_/etc/ssh/sshd_config" do
+  path '/etc/ssh/sshd_config'
+  pattern 'ClientAliveInterval '
+  line 'ClientAliveInterval 300'
+end
+
+replace_or_add "configure_ClientAliveCountMax_in_/etc/ssh/sshd_config" do
+  path '/etc/ssh/sshd_config'
+  pattern 'ClientAliveCountMax '
+  line 'ClientAliveCountMax 0'
+end
+
+# Benchmark 5.2.13
 replace_or_add 'configure_LoginGraceTime_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'LoginGraceTime '
   line 'LoginGraceTime 60'
-  replace_only true
 end
 
-#TODO:Benchmark 5.2.14
-
-#Benchmark 5.2.15
+# Benchmark 5.2.15
 replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'Banner '
   line 'Banner /etc/issue.net'
-  replace_only true
 end
 
-#Benchmark 5.3.1
-package 'libpam-pwquality' do
-  action :install
-end
+# TODO: Benchmark 5.4.2 - 5.6 CHRIS
 
-replace_or_add 'configure_password_requisite_in_/etc/pam.d/common-password' do
-  path '/etc/pam.d/common-password'
-  pattern 'password requisite'
-  line 'password requisite pam_pwquality.so retry=3'
-  replace_only true
-end
-
-replace_or_add 'configure_minlen_in_/etc/security/pwquality.confd' do
-  path '/etc/security/pwquality.conf'
-  pattern 'minlen = '
-  line 'minlen = 14'
-  replace_only true
-end
-
-[
-  'dcredit',
-  'ucredit',
-  'ocredit',
-  'lcredit'
-].each do |line|
-  replace_or_add "configure_#{line}_in_/etc/security/pwquality.confd" do
-    path '/etc/security/pwquality.conf'
-    pattern "#{line} ="
-    line "#{line} = -1"
-    replace_only true
-  end
-end
-
-#Benchmark 5.3.2
-replace_or_add 'configure_auth_required_in_/etc/pam.d/common-auth' do
-  path '/etc/pam.d/common-auth'
-  pattern 'auth required'
-  line 'auth required pam_tally2.so onerr=fail audit silent deny=5 unlock_time=900'
-  replace_only true
-end
-
-#Benchmark 5.3.3
-replace_or_add 'configure_password_required_in_/etc/pam.d/common-password' do
-  path '/etc/pam.d/common-password'
-  pattern 'password required'
-  line 'password required pam_pwhistory.so remember=5'
-  replace_only true
-end
-
-#Benchmark 5.3.4
-replace_or_add 'configure_password_required_in_/etc/pam.d/common-password' do
-  path '/etc/pam.d/common-password'
-  pattern 'password [success= default=ignore]'
-  line 'password [success=1 default=ignore] pam_unix.so sha512'
-  replace_only true
-end
-
-#Benchmark 5.4.1.1
-replace_or_add 'configure_PASS_MAX_DAYS_in_/etc/login.defs' do
-  path '/etc/login.defs'
-  pattern 'PASS_MAX_DAYS '
-  line 'PASS_MAX_DAYS 90'
-  replace_only true
-end
-
-#TODO:Benchmark 5.4.2 - 5.6
-
-#Benchmark 6.1.2 - 6.1.9
+# Benchmark 6.1.2 - 6.1.9
 %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
   file f do
     mode 0644
@@ -633,4 +558,4 @@ end
   end
 end
 
-#TODO:Benchmark 6.1.10 - 6.2.20
+#TODO:Benchmark 6.1.10 - 6.2.20 CHRIS

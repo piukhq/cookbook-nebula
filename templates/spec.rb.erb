@@ -1,0 +1,1019 @@
+control 'cis-benchmark-1.1.1' do
+  title 'Disable unused filesystems'
+  desc 'Ensure that mounting of cramfs, freevxfs, jffs2, hfs, hfsplus and udf
+        filesystems are disabled'
+  impact 0.9
+
+  %w(cramfs freevxfs jffs2 hfs hfsplus udf).each do |fs|
+    describe command("modprobe -n -v #{fs}") do
+      its(:stdout) {should match 'install /bin/true \n'}
+    end
+  end
+end
+
+control 'cis-benchmark-1.1.14-1.1.16' do
+  title 'Ensure nodev, nosuid and noexec option set on /dev/shm'
+  desc 'The nodevmount option specifies that the filesystem cannot contain
+        special devices. The nosuidmount option specifies that the filesystem
+        cannot contain setuid files.The noexecmount option specifies that the
+        filesystem cannot contain executable binaries.'
+  impact 0.9
+
+  describe mount('/dev/shm') do
+    its('options') {should include{
+      nodev = true,
+      nosuid = true,
+      noexec = true
+      }
+    }
+  end
+end
+
+control 'cis-benchmark-1.1.20' do
+  title 'Ensure sticky bit is set on all world-writable directories'
+  desc 'Setting the sticky bit on world writable directories prevents users
+        from deleting or renaming files in that directory that are not owned by
+        them.'
+  impact 0.9
+
+  describe command("df --local -P | awk {if (NR!=1) print $6'} | xargs -I '{}' \
+find '{}' -xdev -type d \( -perm -0002 -a ! -perm -1000 \) \
+2>/dev/null") do
+    its(:exit_status) {should eq 2}
+  end
+end
+
+control 'cis-benchmark-1.1.21' do
+  title 'Disable Automounting'
+  desc 'autofs allows automatic mounting of devices, typically including
+        CD/DVDs and USB drives.'
+  impact 0.9
+
+  describe systemd_service('autofs') do
+    it {should_not be_enabled}
+  end
+end
+
+control 'cis-benchmark-1.3.1' do
+  title 'Ensure AIDE is installed'
+  desc 'AIDE takes a snapshot of filesystem state including modification times,
+        permissions, and file hashes which can then be used to compare against
+        the current state of the filesystem to detect modifications to the
+        system.'
+  impact 0.9
+
+  describe package('aide') do
+    it {should be_installed}
+  end
+end
+
+control 'cis-benchmark-1.3.2' do
+  title 'Ensure filesystem integrity is regularily checked'
+  desc 'Periodic checking of the filesystem integrity is needed to detect
+        changes to the filesystem.'
+  impact 0.9
+
+  describe crontab('root') do
+    its('commands') {should include '/usr/bin/aide --config /etc/aide/aide.conf --check'}
+  end
+end
+
+control 'cis-benchmark-1.4.1' do
+  title 'Ensure permissions on bootloader config are configured'
+  desc 'The grub configuration file contains information on boot settings
+        and passwords for unlocking boot options. The grub configuration is
+        usually grub.cfg stored in /boot/grub.'
+  impact 0.9
+
+  describe file('/boot/grub/grub.cfg') do
+    it {should be_owned_by 'root'}
+  end
+end
+
+control 'cis-benchmark-1.5.1' do
+  title 'Ensure core dumps are restricted'
+  desc 'A core dump is the memory of an executable program. It is generally
+        used to determine why a program aborted. It can also be used to glean
+        confidential information from a core file. The system provides the
+        ability to set a soft limit for core dumps, but this can be overridden
+        by the user.'
+  impact 0.9
+
+  describe file('/etc/security/limits.conf') do
+    its('content') {should match /\* hard core 0/}
+  end
+end
+
+control 'cis-benchmark-1.5.3' do
+  title 'Ensure address space layout randomization (ASLR) is enabled'
+  desc 'Address space layout randomization (ASLR) is an exploit mitigation
+        technique which randomly arranges the address space of key data areas
+        of a process.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /kernel.randomize_va_space = 2/}
+  end
+end
+
+control 'cis-benchmark-1.5.4' do
+  title 'Ensure prelink is disabled'
+  desc 'prelinkis a program that modifies ELF shared libraries and ELF
+        dynamically linked binaries in such a way that the time needed for the
+        dynamic linker to perform relocations at startup significantly
+        decreases.'
+  impact 0.9
+
+  describe package ('prelink') do
+    it {should_not be_installed}
+  end
+end
+
+control 'cis-benchmark-1.6.2.1' do
+  title 'Ensure AppArmor is not disabled in bootloader configuration'
+  desc 'Configure AppArmor to be enabled at boot time and verify that it has
+        not been overwritten by the bootloader boot parameters.'
+  impact 0.9
+
+  describe file ('/etc/default/grub') do
+    its('content') {should_not match /apparmor=0/}
+  end
+end
+
+control 'cis-benchmark-1.6.2.2' do
+  title 'Ensure all AppArmor profiles are enforcing'
+  desc 'AppArmor profiles define what resources applications are
+        able to access.'
+  impact 0.9
+
+  describe command ('apparmor_status') do
+    its(:stdout) {should match '0 processes are in complain mode.
+0 processes are unconfined but have a profile defined.'}
+  end
+end
+
+control 'cis-benchmark-1.6.3' do
+  title 'Ensure SELinux or AppArmor are installed'
+  desc 'SELinux and AppArmor provide Mandatory Access Controls.'
+  impact 0.9
+
+  describe package ('apparmor') do
+    it {should be_installed}
+  end
+end
+
+control 'cis-benchmark-1.7.1.2' do
+  title 'Ensure local login warning banner is configured properly'
+  desc 'The contents of the /etc/issue file are displayed to users prior to
+        login for local terminals. Unix-based systems have typically displayed
+        information about the OS release and patch level upon logging in to the
+        system. This information can be useful to developers who are developing
+        software for a particular OS platform. If mingetty(8) supports the
+        following options, they display operating system information: \m -
+        machine architecture \r - operating system release \s - operating system
+        name \v - operating system version'
+  impact 0.9
+
+  describe file('/etc/issue') do
+    its('content') {should_not match /\\m/}
+    its('content') {should_not match /\\r/}
+    its('content') {should_not match /\\s/}
+    its('content') {should_not match /\\v/}
+  end
+end
+
+control 'cis-benchmark-1.7.1.3' do
+  title 'Ensure remote login warning banner is configured properly'
+  desc 'The contents of the /etc/issue.net file are displayed to users prior to
+        login for remote connections from configured services. Unix-based
+        systems have typically displayed information about the OS release and
+        patch level upon logging in to the system. This information can be
+        useful to developers who are developing software for a particular OS
+        platform. If mingetty(8) supports the following options, they display
+        operating system information: \m - machine architecture \r - operating
+        system release \s - operating system name \v - operating system version'
+  impact 0.9
+
+  describe file('/etc/issue.net') do
+    its('content') {should_not match /\\m/}
+    its('content') {should_not match /\\r/}
+    its('content') {should_not match /\\s/}
+    its('content') {should_not match /\\v/}
+  end
+end
+
+control 'cis-benchmark-1.7.1.5' do
+  title 'Ensure permissions on /etc/issue are configured'
+  desc 'The contents of the /etc/issue file are displayed to users prior to
+        login for local terminals.'
+  impact 0.9
+
+  describe file('/etc/issue') do
+    its('uid') {should eq 0}
+    its('gid') {should eq 0}
+    its('mode') { should cmp '0644'}
+  end
+end
+
+control 'cis-benchmark-1.7.1.6' do
+  title 'Ensure permissions on /etc/issue.net are configured'
+  desc 'The contents of the /etc/issue.net file are displayed to users prior to
+        login for remote connections from configured services.'
+  impact 0.9
+
+  describe file('/etc/issue.net') do
+    its('uid') {should eq 0}
+    its('gid') {should eq 0}
+    its('mode') { should cmp '0644'}
+  end
+end
+
+control 'cis-benchmark-2.1.1-2.1.5' do
+  title 'inetd Services'
+  desc 'Ensure chargen, daytime, discard, echo and time services are not
+        enabled'
+  impact 0.9
+
+  files = ['/etc/inetd.conf', '/etc/inetd.d',
+           '/etc/xinetd.conf', '/etc/xinetd.d/']
+  for f in files do
+    describe file(f) do
+      it {should_not exist}
+    end
+  end
+end
+
+control 'cis-benchmark-2.1.6-2.1.9' do
+  title 'inetd Servers'
+  desc 'Ensure rsh, talk, telnet and tftp servers are not enabled'
+  impact 0.9
+
+  %w(/etc/inetd.conf /etc/inetd.d /etc/xinetd.conf /etc/xinetd.d/).each do |f|
+    describe file(f) do
+      it {should_not exist}
+    end
+  end
+end
+
+control 'cis-benchmark-2.1.10' do
+  title 'Ensure xinetd is not enabled'
+  desc 'The eXtended InterNET Daemon (xinetd) is an open source super daemon
+        that replaced the original inetd daemon. The xinetd daemon listens for
+        well known services and dispatches the appropriate daemon to properly
+        respond to service requests.'
+  impact 0.9
+
+  describe systemd_service('xinetd') do
+    it {should_not be_enabled}
+  end
+end
+
+control 'cis-benchmark-2.1.11' do
+  title 'Ensure openbsd-inetd is not installed'
+  desc 'The inetd daemon listens for well known services and dispatches the
+        appropriate daemon to properly respond to service requests.'
+  impact 0.9
+
+  describe package('openbsd-inetd') do
+    it {should_not be_installed}
+  end
+end
+
+control 'cis-benchmark-2.2.2' do
+  title 'Ensure X Window System is not installed'
+  desc 'The X Window System provides a Graphical User Interface (GUI) where
+        users can have multiple windows in which to run programs and various add
+        on. The X Windows system is typically used on workstations where users
+        login, but not on servers where users typically do not login.'
+  impact 0.9
+
+  describe package('xserver-xorg') do
+    it {should_not be_installed}
+  end
+end
+
+control 'cis-benchmark-2.2.3-2.2.14' do
+  title 'Ensure special purpose services are not enabled'
+  desc 'Ensure Avahi Server, CUPS, DHCP Server, LDAP Server, NFS, RPC, DNS
+        Server, FTP Server, HTTP Server, IMAP Server, POP3 Server, Samba, HTTP
+        Proxy Server and SNMP Server are not enabled'
+  impact 0.9
+
+  %w(avahi-daemon cups isc-dhcp-server isc-dhcp-server6 slapd nfs-server
+     rpcbind bind9 vsftpd apache2 dovecot smbd squid snmpd).each do |s|
+    describe systemd_service(s) do
+      it {should_not be_enabled}
+    end
+  end
+end
+
+control 'cis-benchmark-2.2.15-2.2.17' do
+  title 'Ensure special purpose services are not enabled'
+  desc 'Ensure postfix, rsync and NIS Server are not enabled'
+  impact 0.9
+
+  %w(postfix rsync nis).each do |s|
+    describe systemd_service(s) do
+      it {should_not be_enabled}
+    end
+  end
+end
+
+control 'cis-benchmark-2.3.1-2.3.5' do
+  title 'Ensure service clients are not installed'
+  desc 'Ensure NIS, rsh, talk, telnet and LDAP are not installed'
+  impact 0.9
+
+  %w(nis rsh-client rsh-redone-client talk telnet ldap-utils).each do |p|
+    describe package(p) do
+      it {should_not be_installed}
+    end
+  end
+end
+
+control 'cis-benchmark-3.1.2' do
+  title 'Ensure packet redirect sending is disabled'
+  desc 'ICMP Redirects are used to send routing information to other hosts. As
+        a host itself does not act as a router (in a host only configuration),
+        there is no need to send redirects.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.send_redirects = 0/}
+    its('content') {should match /net.ipv4.conf.default.send_redirects = 0/}
+  end
+end
+
+control 'cis-benchmark-3.2.1' do
+  title 'Ensure source routed packets are not accepted'
+  desc 'In networking, source routing allows a sender to partially or fully
+        specify the route packets take through a network. In contrast,
+        non-source routed packets travel a path determined by routers in the
+        network. In some cases, systems may not be routable or reachable from
+        some locations (e.g. private addresses vs. Internet routable), and so
+        source routed packets would need to be used.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.accept_source_route = 0/}
+    its('content') {should match /net.ipv4.conf.default.accept_source_route = 0/}
+  end
+end
+
+control 'cis-benchmark-3.2.2' do
+  title 'Ensure ICMP redirects are not accepted'
+  desc "ICMP redirect messages are packets that convey routing information and
+        tell your host (acting as a router) to send packets via an alternate
+        path. It is a way of allowing an outside routing device to update your
+        system routing tables. By setting net.ipv4.conf.all.accept_redirects to
+        0, the system will not accept any ICMP redirect messages, and therefore,
+        won't allow outsiders to update the system's routing tables."
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.accept_redirects = 0/}
+    its('content') {should match /net.ipv4.conf.default.accept_redirects = 0/}
+  end
+end
+
+control 'cis-benchmark-3.2.3' do
+  title 'Ensure secure ICMP redirects are not accepted'
+  desc 'Secure ICMP redirects are the same as ICMP redirects, except they come
+        from gateways listed on the default gateway list. It is assumed that
+        these gateways are known to your system, and that they are likely to
+        be secure.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.secure_redirects = 0/}
+    its('content') {should match /net.ipv4.conf.default.secure_redirects = 0/}
+  end
+end
+
+control 'cis-benchmark-3.2.4' do
+  title 'Ensure suspicious packets are logged'
+  desc 'When enabled, this feature logs packets with un-routable source
+        addresses to the kernel log.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.log_martians = 1/}
+    its('content') {should match /net.ipv4.conf.default.log_martians = 1/}
+  end
+end
+
+control 'cis-benchmark-3.2.5' do
+  title 'Ensure broadcast ICMP requests are ignored'
+  desc 'Setting net.ipv4.icmp_echo_ignore_broadcasts to 1 will cause the system
+        to ignore all ICMP echo and timestamp requests to broadcast and
+        multicast addresses.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.icmp_echo_ignore_broadcasts = 1/}
+  end
+end
+
+control 'cis-benchmark-3.2.6' do
+  title 'Ensure bogus ICMP responses are ignored'
+  desc 'Setting icmp_ignore_bogus_error_responses to 1 prevents the kernel from
+        logging bogus responses (RFC-1122 non-compliant) from broadcast
+        reframes, keeping file systems from filling up with useless log
+        messages.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.icmp_ignore_bogus_error_responses = 1/}
+  end
+end
+
+control 'cis-benchmark-3.2.7' do
+  title 'Ensure Reverse Path Filtering is enabled'
+  desc 'Setting net.ipv4.conf.all.rp_filter and net.ipv4.conf.default.rp_filter
+        to 1 forces the Linux kernel to utilize reverse path filtering on a
+        received packet to determine if the packet was valid. Essentially, with
+        reverse path filtering, if the return packet does not go out the same
+        interface that the corresponding source packet came from, the packet is
+        dropped (and logged if log_martians is set).'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.conf.all.rp_filter = 1/}
+    its('content') {should match /net.ipv4.conf.default.rp_filter = 1/}
+  end
+end
+
+control 'cis-benchmark-3.2.8' do
+  title 'Ensure TCP SYN Cookies is enabled'
+  desc 'When tcp_syncookies is set, the kernel will handle TCP SYN packets
+        normally until the half-open connection queue is full, at which time,
+        the SYN cookie functionality kicks in. SYN cookies work by not using
+        the SYN queue at all. Instead, the kernel simply replies to the SYN with
+        a SYN|ACK, but will include a specially crafted TCP sequence number that
+        encodes the source and destination IP address and port number and the
+        time the packet was sent. A legitimate connection would send the ACK
+        packet of the three way handshake with the specially crafted sequence
+        number. This allows the system to verify that it has received a valid
+        response to a SYN cookie and allow the connection, even though there is
+        no corresponding SYN in the queue.'
+  impact 0.9
+
+  describe file('/etc/sysctl.conf') do
+    its('content') {should match /net.ipv4.tcp_syncookies = 1/}
+  end
+end
+
+control 'cis-benchmark-3.5.1-3.5.4' do
+  title 'Ensure uncommon network protocols are disabled'
+  desc 'Ensure DCCP, SCTP, RDS and TIPC are disabled'
+  impact 0.9
+
+  %w(dccp sctp rds tipc).each do |s|
+    describe command("modprobe -n -v #{s}") do
+      its(:stdout) {should match 'install /bin/true \n'}
+    end
+  end
+end
+
+control 'cis-benchmark-3.6.1' do
+  title 'Ensure iptables is installed'
+  desc 'iptables allows configuration of the IPv4 tables in the linux kernel and
+        the rules stored within them. Most firewall configuration utilities
+        operate as a front end to iptables.'
+  impact 0.9
+
+  describe package('iptables') do
+    it {should be_installed}
+  end
+end
+
+control 'cis-benchmark-4.1.2' do
+  title 'Ensure auditd service is enabled'
+  desc 'Turn on the auditd daemon to record system events.'
+  impact 0.9
+
+  describe systemd_service('auditd') do
+    it {should be_enabled}
+  end
+end
+
+control 'cis-benchmark-4.1.3' do
+  title 'Ensure auditing for processes that start prior to auditd is enabled'
+  desc 'Configure grub so that processes that are capable of being audited can
+        be audited even if they start up prior to auditd startup.'
+  impact 0.9
+
+  describe file('/etc/default/grub') do
+    its('content') {should match /audit=1/}
+  end
+end
+
+control 'cis-benchmark-4.1.4' do
+  title 'Ensure events that modify date and time information are collected'
+  desc 'Capture events where the system date and/or time has been modified. The
+        parameters in this section are set to determine if the adjtimex (tune
+        kernel clock), settimeofday (Set time, using timeval and timezone
+        structures) stime (using seconds since 1/1/1970) or clock_settime
+        (allows for the setting of several internal clocks and timers) system
+        calls have been executed and always write an audit record to the
+        /var/log/audit.log file upon exit, tagging the records with the
+        identifier "time-change"'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change/}
+    its('content') {should match /-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change/}
+    its('content') {should match /-a always,exit -F arch=b64 -S clock_settime -k time-change/}
+    its('content') {should match /-a always,exit -F arch=b32 -S clock_settime -k time-change/}
+    its('content') {should match /-w \/etc\/localtime -p wa -k time-change/}
+  end
+end
+
+control 'cis-benchmark-4.1.5' do
+  title 'Ensure events that modify user/group information are collected'
+  desc 'Record events affecting the group , passwd (user IDs), shadow and
+        gshadow (passwords) or /etc/security/opasswd (old passwords, based on
+        remember parameter in the PAM configuration) files. The parameters in
+        this section will watch the files to see if they have been opened for
+        write or have had attribute changes (e.g. permissions) and tag them with
+        the identifier "identity" in the audit log file.'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/etc\/group -p wa -k identity/}
+    its('content') {should match /-w \/etc\/passwd -p wa -k identity/}
+    its('content') {should match /-w \/etc\/gshadow -p wa -k identity/}
+    its('content') {should match /-w \/etc\/shadow -p wa -k identity/}
+    its('content') {should match /-w \/etc\/security\/opasswd -p wa -k identity/}
+  end
+end
+
+control 'cis-benchmark-4.1.6' do
+  title "Ensure events that modify the system's network environment are collected"
+  desc 'Record changes to network environment files or system calls. The below
+        parameters monitor the sethostname (set the systems host name) or
+        setdomainname (set the systems domainname) system calls, and write an
+        audit event on system call exit. The other parameters monitor the
+        /etc/issue and /etc/issue.net files (messages displayed pre- login),
+        /etc/hosts (file containing host names and associated IP addresses) and
+        /etc/sysconfig/network (directory containing network interface scripts
+        and configurations) files.'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale/}
+    its('content') {should match /-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale/}
+    its('content') {should match /-w \/etc\/issue -p wa -k system-locale/}
+    its('content') {should match /-w \/etc\/issue.net -p wa -k system-locale/}
+    its('content') {should match /-w \/etc\/hosts -p wa -k system-locale/}
+  end
+end
+
+control 'cis-benchmark-4.1.7' do
+  title "Ensure events that modify the system's Mandatory Access Controls are collected"
+  desc 'Monitor AppArmor mandatory access controls. The parameters below monitor
+        any write access (potential additional, deletion or modification of
+        files in the directory) or attribute changes to the /etc/apparmor and
+        /etc/apparmor.d directories.'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/etc\/apparmor\/ -p wa -k MAC-policy/}
+    its('content') {should match /-w \/etc\/apparmor.d\/ -p wa -k MAC-policy/}
+  end
+end
+
+control 'cis-benchmark-4.1.8' do
+  title 'Ensure login and logout events are collected'
+  desc 'Monitor login and logout events. The parameters below track changes to
+        files associated with login/logout events. The file /var/log/faillog
+        tracks failed events from login. The file /var/log/lastlog maintain
+        records of the last time a user successfully logged in. The file
+        /var/log/tallylog maintains records of failures via the pam_tally2
+        module'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/var\/log\/faillog -p wa -k logins/}
+    its('content') {should match /-w \/var\/log\/lastlog -p wa -k logins/}
+    its('content') {should match /-w \/var\/log\/tallylog -p wa -k logins/}
+  end
+end
+
+control 'cis-benchmark-4.1.9' do
+  title 'Ensure session initiation information is collected'
+  desc 'Monitor session initiation events. The parameters in this section track
+        changes to the files associated with session events. The file
+        /var/run/utmp file tracks all currently logged in users. All audit
+        records will be tagged with the identifier "session." The /var/log/wtmp
+        file tracks logins, logouts, shutdown, and reboot events. The file
+        /var/log/btmp keeps track of failed login attempts and can be read by
+        entering the command /usr/bin/last -f /var/log/btmp. All audit records
+        will be tagged with the identifier "logins."'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/var\/run\/utmp -p wa -k session/}
+    its('content') {should match /-w \/var\/log\/wtmp -p wa -k logins/}
+    its('content') {should match /-w \/var\/log\/btmp -p wa -k logins/}
+  end
+end
+
+control 'cis-benchmark-4.1.10' do
+  title 'Ensure discretionary access control permission modification events are collected'
+  desc 'Monitor changes to file permissions, attributes, ownership and group.
+        The parameters in this section track changes for system calls that
+        affect file permissions and attributes. The chmod, fchmod and fchmodat
+        system calls affect the permissions associated with a file. The chown,
+        fchown, fchownat and lchown system calls affect owner and group
+        attributes on a file. The setxattr, lsetxattr, fsetxattr (set extended
+        file attributes) and removexattr, lremovexattr, fremovexattr (remove
+        extended file attributes) control extended file attributes. In all
+        cases, an audit record will only be written for non-system user ids
+        (auid >= 1000) and will ignore Daemon events (auid = 4294967295). All
+        audit records will be tagged with the identifier "perm_mod."'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+    its('content') {should match /-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+    its('content') {should match /-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+    its('content') {should match /-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+    its('content') {should match /-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+    its('content') {should match /-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod/}
+  end
+end
+
+control 'cis-benchmark-4.1.11' do
+  title 'Ensure unsuccessful unauthorized file access attempts are collected'
+  desc 'Monitor for unsuccessful attempts to access files. The parameters below
+        are associated with system calls that control creation (creat), opening
+        (open, openat) and truncation (truncate ,ftruncate) of files. An audit
+        log record will only be written if the user is a non-privileged user
+        (auid > = 1000), is not a Daemon event (auid=4294967295) and if the
+        system call returned EACCES (permission denied to the file) or EPERM
+        (some other permanent error associated with the specific system call).
+        All audit records will be tagged with the identifier "access."'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access/}
+    its('content') {should match /-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access/}
+    its('content') {should match /-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access/}
+    its('content') {should match /-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access/}
+  end
+end
+
+control 'cis-benchmark-4.1.13' do
+  title 'Ensure successful file system mounts are collected'
+  desc 'Monitor the use of the mount system call. The mount (and umount ) system
+        call controls the mounting and unmounting of file systems. The
+        parameters below configure the system to create an audit record when the
+        mount system call is used by a non-privileged user'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts/}
+    its('content') {should match /-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts/}
+  end
+end
+
+control 'cis-benchmark-4.1.14' do
+  title 'Ensure file deletion events by users are collected'
+  desc 'Monitor the use of system calls associated with the deletion or renaming
+        of files and file attributes. This configuration statement sets up
+        monitoring for the unlink (remove a file),unlinkat (remove a file
+        attribute), rename (rename a file) and renameat (rename a file
+        attribute) system calls and tags them with the identifier "delete".'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete/}
+    its('content') {should match /-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete/}
+  end
+end
+
+control 'cis-benchmark-4.1.15' do
+  title 'Ensure changes to system administration scope (sudoers) is collected'
+  desc 'Monitor scope changes for system administrations. If the system has been
+        properly configured to force system administrators to log in as
+        themselves first and then use the sudo command to execute privileged
+        commands, it is possible to monitor changes in scope. The file
+        /etc/sudoers will be written to when the file or its attributes have
+        changed. The audit records will be tagged with the identifier "scope."'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/etc\/sudoers -p wa -k scope/}
+    its('content') {should match /-w \/etc\/sudoers.d\/ -p wa -k scope/}
+  end
+end
+
+control 'cis-benchmark-4.1.16' do
+  title 'Ensure system administrator actions (sudolog) are collected'
+  desc 'Monitor the sudo log file. If the system has been properly configured to
+        disable the use of the su command and force all administrators to have
+        to log in first and then use sudo to execute privileged commands, then
+        all administrator commands will be logged to /var/log/sudo.log. Any time
+        a command is executed, an audit event will be triggered as the
+        /var/log/sudo.log file will be opened for write and the executed
+        administration command will be written to the log.'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/var\/log\/sudo.log -p wa -k actions/}
+  end
+end
+
+control 'cis-benchmark-4.1.17' do
+  title 'Ensure kernel module loading and unloading is collected'
+  desc 'Monitor the loading and unloading of kernel modules. The programs insmod
+        (install a kernel module), rmmod (remove a kernel module), and modprobe
+        (a more sophisticated program to load and unload modules, as well as
+        some other features) control loading and unloading of modules. The
+        init_module (load a module) and delete_module (delete a module) system
+        calls control loading and unloading of modules. Any execution of the
+        loading and unloading module programs and system calls will trigger an
+        audit record with an identifier of "modules".'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-w \/sbin\/insmod -p x -k modules/}
+    its('content') {should match /-w \/sbin\/rmmod -p x -k modules/}
+    its('content') {should match /-w \/sbin\/modprobe -p x -k modules/}
+    its('content') {should match /-a always,exit -F arch=b64 -S init_module -S delete_module -k modules/}
+  end
+end
+
+control 'cis-benchmark-4.1.18' do
+  title 'Ensure the audit configuration is immutable'
+  desc 'Set system audit so that audit rules cannot be modified with auditctl.
+        Setting the flag "-e 2" forces audit to be put in immutable mode. Audit
+        changes can only be made on system reboot.'
+  impact 0.9
+
+  describe file('/etc/audit/audit.rules') do
+    its('content') {should match /-e 2/}
+  end
+end
+
+control 'cis-benchmark-4.2.1.1' do
+  title 'Ensure rsyslog Service is enabled'
+  desc 'Once the rsyslog package is installed it needs to be activated.'
+  impact 0.9
+
+  describe systemd_service('rsyslog') do
+    it {should be_enabled}
+  end
+end
+
+control 'cis-benchmark-4.2.1.3' do
+  title 'Ensure rsyslog default file permissions configured'
+  desc 'rsyslog will create logfiles that do not already exist on the system.
+        This setting controls what permissions will be applied to these newly
+        created files.'
+  impact 0.9
+
+  describe file('/etc/rsyslog.conf') do
+    its('content') {should match /\$FileCreateMode 0640/}
+  end
+end
+
+control 'cis-benchmark-5.1.1' do
+  title 'Ensure cron daemon is enabled'
+  desc 'The cron daemon is used to execute batch jobs on the system.'
+  impact 0.9
+
+  describe package('cron') do
+    it {should be_installed}
+  end
+end
+
+control 'cis-benchmark-5.1.2' do
+  title 'Ensure permissions on /etc/crontab are configured'
+  desc 'The /etc/crontabfile is used by cronto control its own jobs. The
+        commands in this item make sure that root is the user and group owner of
+        the file and that only the owner can access the file.'
+  impact 0.9
+
+  describe file('/etc/crontab') do
+    its('uid') {should eq 0}
+    its('gid') {should eq 0}
+    its('mode') {should cmp '0600'}
+  end
+end
+
+control 'cis-benchmark-5.1.3-5.1.7' do
+  title 'Ensure permissions are configured'
+  desc 'Ensure permissions for /etc/cron.hourly, /etc/cron.daily,
+        /etc/cron.weekly, /etc/cron.monthly and /etc/cron.d are configured'
+  impact 0.9
+
+  %w(/etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly /etc/cron.d).each do |f|
+    describe file(f) do
+      its('uid') {should eq 0}
+      its('gid') {should eq 0}
+      its('mode') { should cmp '0700'}
+    end
+  end
+end
+
+control 'cis-benchmark-5.1.8' do
+  title 'Ensure at/cron is restricted to authorized users'
+  desc 'Configure /etc/cron.allow and /etc/at.allow to allow specific users to
+        use these services. If /etc/cron.allow or /etc/at.allow do not exist,
+        then /etc/at.deny and /etc/cron.deny are checked. Any user not
+        specifically defined in those files is allowed to use at and cron. By
+        removing the files, only users in /etc/cron.allow and /etc/at.allow are
+        allowed to use at and cron. Note that even though a given user is not
+        listed in cron.allow, cron jobs can still be run as that user. The
+        cron.allow file only controls administrative access to the crontab
+        command for scheduling and modifying cron jobs.'
+
+  %w(/etc/cron.deny /etc/at.deny).each do |f|
+    describe file(f) do
+      it {should_not exist}
+    end
+  end
+end
+
+control 'cis-benchmark-5.1.8' do
+  title 'Ensure at/cron is restricted to authorized users'
+  desc 'Configure /etc/cron.allow and /etc/at.allow to allow specific users to
+        use these services. If /etc/cron.allow or /etc/at.allow do not exist,
+        then /etc/at.deny and /etc/cron.deny are checked. Any user not
+        specifically defined in those files is allowed to use at and cron. By
+        removing the files, only users in /etc/cron.allow and /etc/at.allow are
+        allowed to use at and cron. Note that even though a given user is not
+        listed in cron.allow, cron jobs can still be run as that user. The
+        cron.allow file only controls administrative access to the crontab
+        command for scheduling and modifying cron jobs.'
+
+  %w(/etc/cron.allow /etc/at.allow).each do |f|
+    describe file(f) do
+      it {should exist}
+      its('uid') {should eq 0}
+      its('gid') {should eq 0}
+      its('mode') { should cmp '0600'}
+    end
+  end
+end
+
+control 'cis-benchmark-5.2.1' do
+  title 'Ensure permissions on /etc/ssh/sshd_config are configured'
+  desc 'The /etc/ssh/sshd_config file contains configuration specifications for
+        sshd. The command below sets the owner and group of the file to root.'
+
+  describe file('/etc/ssh/sshd_config') do
+    its('uid') {should eq 0}
+    its('gid') {should eq 0}
+    its('mode') { should cmp '0600'}
+  end
+end
+
+control 'cis-benchmark-5.2.2-5.2.15' do
+  title 'Ensure SSH Server is configured'
+  desc 'Ensure SSH Server is configured correctly'
+
+  config = [
+    "Protocol 2",
+    "LogLevel INFO",
+    "X11Forwarding no",
+    "MaxAuthTries 4",
+    "IgnoreRhosts yes",
+    "HostbasedAuthentication no",
+    "PermitRootLogin no",
+    "PermitEmptyPasswords no",
+    "PermitUserEnvironment no",
+    "ClientAliveInterval 300",
+    "ClientAliveCountMax 0",
+    "LoginGraceTime 60",
+    "Banner /etc/issue.net"
+  ].each do |c|
+    describe file('/etc/ssh/sshd_config') do
+      its('content') {should match /#{c}/}
+    end
+  end
+end
+
+control 'cis-benchmark-5.4.3' do
+  title 'Ensure default group for the root account is GID 0'
+  desc 'The usermod command can be used to specify which group the root user
+        belongs to. This affects permissions of files that are created by the
+        root user.'
+
+  describe user('root') do
+    its('gid') {should eq 0}
+  end
+end
+
+control 'cis-benchmark-5.4.4' do
+  title 'Ensure default user umask is 027 or more restrictive'
+  desc 'The default umask determines the permissions of files created by users.
+        The user creating the file has the discretion of making their files and
+        directories readable by others via the chmod command. Users who wish to
+        allow their files and directories to be readable by others by default
+        may choose a different default umask by inserting the umask command into
+        the standard shell configuration files (.profile, .bashrc, etc.) in
+        their home directories.'
+
+  describe user('root') do
+    its('gid') {should eq 0}
+  end
+end
+
+control 'cis-benchmark-5.6' do
+  title 'Ensure access to the su command is restricted'
+  desc 'The su command allows a user to run a command or shell as another user.
+        The program has been superseded by sudo, which allows for more granular
+        control over privileged access. Normally, the su command can be executed
+        by any user. By uncommenting the pam_wheel.so statement in
+        /etc/pam.d/su, the su command will only allow users in the wheel group
+        to execute su.'
+
+  describe file('/etc/pam.d/su') do
+    its('content') {should match /auth required pam_wheel.so/}
+  end
+end
+
+control 'cis-benchmark-6.1.2-6.1.9' do
+  title 'Ensure permissions are configured'
+  desc 'Ensure permissions for /etc/passwd and /etc/group are configured'
+  impact 0.9
+
+  %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
+    describe file(f) do
+      its('mode') { should cmp '0644'}
+    end
+  end
+
+  %w(/etc/shadow /etc/gshadow /etc/shadow- /etc/gshadow-).each do |f|
+    describe file(f) do
+      its('mode') { should cmp '0640'}
+    end
+  end
+end
+
+control 'cis-benchmark-6.1.10' do
+  title 'Ensure no world writable files exist'
+  desc 'Unix-based systems support variable settings to control access to files.
+        World writable files are the least secure. See the chmod(2) man page for
+        more information.'
+  impact 0.9
+
+  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I \
+'{}' find '{}' -xdev -type f -perm -0002") do
+    its(:stdout) {should eq ""}
+  end
+end
+
+control 'cis-benchmark-6.1.11' do
+  title 'Ensure no unowned files or directories exist'
+  desc 'Sometimes when administrators delete users from the password file they
+        neglect to remove all files owned by those users from the system.'
+  impact 0.9
+
+  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I \
+'{}' find '{}' -xdev -nouser") do
+    its(:stdout) {should eq ""}
+  end
+end
+
+control 'cis-benchmark-6.1.12' do
+  title 'Ensure no ungrouped files or directories exist'
+  desc 'Sometimes when administrators delete users or groups from the system
+        they neglect to remove all files owned by those users or groups.'
+  impact 0.9
+
+  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I \
+'{}' find '{}' -xdev -nogroup") do
+    its(:stdout) {should eq ""}
+  end
+end
+
+control 'cis-benchmark-6.2.2-6.2.4' do
+  title 'Ensure no legacy "+" entries exist'
+  desc 'The character + in various files used to be markers for systems to
+        insert data from NIS maps at a certain point in a system configuration
+        file. These entries are no longer required on most systems, but may
+        exist in files that have been imported from other platforms.'
+  impact 0.9
+
+  %w(/etc/passwd /etc/shadow /etc/group).each do |f|
+    describe file(f) do
+      its('content') {should_not match /\+/}
+    end
+  end
+end
+
+control 'cis-benchmark-6.2.20' do
+  title 'Ensure shadow group is empty'
+  desc 'The shadow group allows system programs which require access the ability
+        to read the /etc/shadow file. No users should be assigned to the shadow
+        group.'
+  impact 0.9
+
+  describe users.where(groupname: shadow) do
+    it {should_not exist}
+  end
+end
