@@ -263,3 +263,195 @@ end
 package 'iptables' do
   action :upgrade
 end
+
+#Benchmark 4.1.1.1 - 4.1.1.3
+directory '/etc/audit' do
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :create
+end
+
+file '/etc/audit/auditd.conf' do
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :create_if_missing
+end
+
+[
+  'max_log_file = 5',
+  'space_left_action = email',
+  'action_mail_acct = root',
+  'admin_space_left_action = halt',
+  'max_log_file_action = keep_logs'
+].each do |line|
+  append_if_no_line "add_#{line}_to_/etc/audit/auditd.conf" do
+    path '/etc/audit/auditd.conf'
+    line "#{line}"
+  end
+end
+
+#Benchmark 4.1.2
+package 'auditd' do
+  action :install
+end
+
+service 'auditd' do
+  action :enable
+end
+
+#Benchmark 4.1.3
+add_to_list 'update-grub' do
+  path '/etc/default/grub'
+  pattern 'GRUB_CMDLINE_LINUX='
+  delim [' ']
+  ends_with '"'
+  entry 'audit=1'
+  notifies :run, 'execute[update-grub]', :immediately
+end
+
+execute 'update-grub' do
+  command 'update-grub'
+  action :nothing
+end
+
+#Benchmark 4.1.4 - 4.1.11
+file '/etc/audit/audit.rules' do
+  owner 'root'
+  group 'root'
+  mode 0644
+  action :create_if_missing
+end
+
+[
+  "-a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change",
+  "-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time- change",
+  "-a always,exit -F arch=b64 -S clock_settime -k time-change",
+  "-a always,exit -F arch=b32 -S clock_settime -k time-change",
+  "-w /etc/localtime -p wa -k time-change",
+  "-w /etc/group -p wa -k identity",
+  "-w /etc/passwd -p wa -k identity",
+  "-w /etc/gshadow -p wa -k identity",
+  "-w /etc/shadow -p wa -k identity",
+  "-w /etc/security/opasswd -p wa -k identity",
+  "-a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale",
+  "-a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale",
+  "-w /etc/issue -p wa -k system-locale",
+  "-w /etc/issue.net -p wa -k system-locale",
+  "-w /etc/hosts -p wa -k system-locale",
+  "-w /etc/sysconfig/network -p wa -k system-locale",
+  "-w /etc/apparmor/ -p wa -k MAC-policy",
+  "-w /etc/apparmor.d/ -p wa -k MAC-policy",
+  "-w /var/log/faillog -p wa -k logins",
+  "-w /var/log/lastlog -p wa -k logins",
+  "-w /var/log/tallylog -p wa -k logins",
+  "-w /var/run/utmp -p wa -k session",
+  "-w /var/log/wtmp -p wa -k logins",
+  "-w /var/log/btmp -p wa -k logins",
+  "-a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=1000 -F auid!=4294967295 -k perm_mod",
+  "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access",
+  "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=1000 -F auid!=4294967295 -k access",
+  "-a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access",
+  "-a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=1000 -F auid!=4294967295 -k access"
+].each do |line|
+  append_if_no_line "add_#{line}_to_/etc/audit/audit.rules" do
+    path '/etc/audit/audit.rules'
+    line "#{line}"
+  end
+end
+
+# TODO: Research Benchmark 4.1.12
+
+#Benchmark 4.1.13 - 4.1.18
+[
+
+  "-a always,exit -F arch=b64 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts",
+  "-a always,exit -F arch=b32 -S mount -F auid>=1000 -F auid!=4294967295 -k mounts",
+  "-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete",
+  "-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k delete",
+  "-w /etc/sudoers -p wa -k scope",
+  "-w /etc/sudoers.d/ -p wa -k scope",
+  "-w /var/log/sudo.log -p wa -k actions",
+  "-w /sbin/insmod -p x -k modules",
+  "-w /sbin/rmmod -p x -k modules",
+  "-w /sbin/modprobe -p x -k modules",
+  "-a always,exit -F arch=b64 -S init_module -S delete_module -k modules",
+  "-e 2"
+].each do |line|
+  append_if_no_line "add_#{line}_to_/etc/audit/audit.rules" do
+    path '/etc/audit/audit.rules'
+    line "#{line}"
+  end
+end
+
+#Benchmark 4.2.1.1
+service 'rsyslog' do
+  action :enable
+end
+
+#TODO: Research Benchmark 4.2.1.2
+
+#Benchmark 4.2.1.3
+replace_or_add 'configure_FileCreateMode_in_/etc/rsyslog.conf' do
+  path '/etc/rsyslog.conf'
+  pattern '$FileCreateMode*'
+  line '$FileCreateMode 0640'
+  replace_only true
+end
+
+#TODO: Benchmark 4.2.1.4
+
+#TODO: Benchmark 4.3
+
+#Benchmark 5.1.1
+service 'cron' do
+  action :enable
+end
+
+#Benchmark 5.1.2
+file '/etc/crontab' do
+  mode 0600
+end
+
+#Benchmark 5.1.3 - 5.1.7
+%w(hourly daily weekly monthly d).each do |d|
+  directory "/etc/cron.#{d}" do
+    mode 0700
+  end
+end
+
+#Benchmark 5.1.8
+%w(/etc/cron.deny /etc/at.deny).each do |f|
+  file f do
+    action :delete
+  end
+end
+
+%w(/etc/cron.allow /etc/at.allow).each do |f|
+  file f do
+    action :touch
+    owner 'root'
+    group 'root'
+    mode 0600
+  end
+end
+
+#Benchmark 5.2.1
+file '/etc/ssh/sshd_config' do
+  action :touch
+  owner 'root'
+  group 'root'
+  mode 0600
+end
+
+#Benchmark 5.2.2
+append_if_no_line 'configure_Protocol_in_/etc/ssh/sshd_config' do
+  path '/etc/ssh/sshd_config'
+  line 'Protocol 2'
+end
