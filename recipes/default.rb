@@ -160,7 +160,15 @@ package 'chrony' do
   action :install
 end
 
-# TODO: Benchmark 2.2.1.3 & update bookstack
+# Benchmark 2.2.1.3
+service 'chrony' do
+  action :nothing
+end
+
+template '/etc/chrony/chrony.conf' do
+  source 'chrony/config.erb'
+  notifies :restart, 'service[chrony]'
+end
 
 # Benchmark: 2.2.2
 package 'xserver-xorg' do
