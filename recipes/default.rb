@@ -329,7 +329,7 @@ service 'rsyslog' do
   action :enable
 end
 
-# Benchmark 4.2.1.2 & 4.2.1.4 TODO: Improve below
+# Benchmark 4.2.1.2 & 4.2.1.4 TODO: Improve below and update spec.rb
 file '/etc/rsyslog.d/99-graylog.conf' do
   content "*.* @@#{node[:graylog][:connection]};RSYSLOG_SyslogProtocol23Format"
   notifies :restart, 'service[rsyslog]', :immediately
@@ -517,7 +517,7 @@ end
 #TODO:Benchmark 6.1.10 - 6.2.20 & update bookstack CHRIS
 
 # 6.1.10 - This will not be implemented due to the nature of Kubernetes
-# some Container images may have world-writable files on purpose. 
+# some Container images may have world-writable files on purpose.
 
 # 6.1.11 - Same as 6.1.10
 # Containers will almost never use the same UIDs as what exists in /etc/passwd
@@ -550,6 +550,3 @@ end
 # 6.2.18 - Same as 6.2.7
 # 6.2.19 - Same as 6.2.7
 # 6.2.20 - Same as 6.2.1
-
-
-
