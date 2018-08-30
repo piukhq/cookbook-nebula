@@ -481,6 +481,25 @@ replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
 end
 
 # TODO: Benchmark 5.4.2 - 5.6 & update bookstack CHRIS
+# Notes for Bookstack:
+# 5.4.2 cannot be easily implemented in Chef without potentally causing harm
+# to other services, as such, we won't do this unless the tests show specific
+# examples.
+
+# 5.4.3 could cause the same issue as 5.4.2, we'll test for it
+
+# TODO: Implement 5.4.4
+
+# 5.4.5 not sure if there is any reasonable value in implementing this
+# Office computers have a screen sleep policy of 2 minutes.
+
+# 5.5 This is a VM, this does not apply.
+
+# Benchmark 5.6
+append_if_no_line 'prevent_access_to_su' do
+  path '/etc/pam.d/su'
+  line 'auth required pam_wheel.so'
+end
 
 # Benchmark 6.1.2 - 6.1.9
 %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
