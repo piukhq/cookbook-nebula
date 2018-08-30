@@ -8,6 +8,8 @@ Vagrant.configure('2') do |v|
       c.version = '13.8.5'
       c.cookbooks_path = '../'
       c.add_recipe 'nebula::default'
+      c.environments_path = "environments"
+      c.environment = "vagrant"
     end
   end
 end

@@ -1,0 +1,16 @@
+{
+  "name": "vagrant",
+  "description": "Default Environment for Vagrant",
+  "json_class": "Chef::Environment",
+  "chef_type": "environment",
+  "default_attributes": {
+    "users": {
+      "active": [
+        {
+          "name": "vagrant",
+          "id": 1000
+        }
+      ]
+    }
+  }
+}

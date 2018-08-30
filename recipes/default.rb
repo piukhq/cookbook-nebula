@@ -540,10 +540,15 @@ end
 # 6.2.8 - Same as 6.2.7
 # 6.2.9 - Same as 6.2.7
 # 6.2.10 - Same as 6.2.7
-# 6.2.11 - TODO: implement in Users Cookbook
-# 6.2.12 - TODO: implement in Users Cookbook
-# 6.2.13 - TODO: implement in Users Cookbook
-# 6.2.14 - TODO: implement in Users Cookbook
+# Benchmark 6.2.11 - 6.2.14
+node[:users][:active].each do |u|
+  %w(.forward .netrc .rhosts).each do |f|
+    file "/home/#{u[:name]}/#{f}" do
+      action :delete
+    end
+  end
+end
+
 # 6.2.15 - Same as 6.2.7
 # 6.2.16 - Same as 6.2.7
 # 6.2.17 - Same as 6.2.7
