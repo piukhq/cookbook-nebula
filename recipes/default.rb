@@ -66,7 +66,7 @@ package 'aide' do
 #  notifies :run 'execute[aideinit]' TODO: finish implementation of aideinit
 end
 
-# TODO: Finish implementation of 1.3.2
+# TODO: Finish implementation of 1.3.2 and update bookstack for 1.3.1 & 1.3.2
 
 # Benchmark: 1.4.1
 file '/boot/grub/grub.cfg' do
@@ -160,7 +160,7 @@ package 'chrony' do
   action :install
 end
 
-# TODO: Benchmark 2.2.1.3
+# TODO: Benchmark 2.2.1.3 & update bookstack
 
 # Benchmark: 2.2.2
 package 'xserver-xorg' do
@@ -363,7 +363,7 @@ end
   end
 end
 
-# TODO: Research Benchmark 4.1.12
+# TODO: Research Benchmark 4.1.12 & update bookstack
 
 # Benchmark 4.1.13 - 4.1.18
 [
@@ -543,7 +543,7 @@ replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
   line 'Banner /etc/issue.net'
 end
 
-# TODO: Benchmark 5.4.2 - 5.6 CHRIS
+# TODO: Benchmark 5.4.2 - 5.6 & update bookstack CHRIS
 
 # Benchmark 6.1.2 - 6.1.9
 %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
@@ -558,4 +558,4 @@ end
   end
 end
 
-#TODO:Benchmark 6.1.10 - 6.2.20 CHRIS
+#TODO:Benchmark 6.1.10 - 6.2.20 & update bookstack CHRIS

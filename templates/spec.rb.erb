@@ -104,6 +104,24 @@ control 'cis-benchmark-1.5.1' do
   end
 end
 
+control 'cis-benchmark-1.5.2' do
+  title 'Ensure XD/NX support is enabled'
+  desc 'Recent processors in the x86 family support the ability to prevent code
+        execution on a per memory page basis. Generically and on AMD processors,
+        this ability is called No Execute(NX), while on Intel processors it is
+        called Execute Disable(XD). This ability can help prevent exploitation
+        of buffer overflow vulnerabilities and should be activated whenever
+        possible. Extra steps must be taken to ensure that this protection is
+        enabled, particularly on 32-bit x86 systems. Other processors, such as
+        Itanium and POWER, have included such support since inception and the
+        standard kernel for those platforms supports the feature.'
+  impact 0.9
+
+  describe command("dmesg | grep 'NX (Execute Disable)'") do
+    its('content') {should match /NX (Execute Disable) protection: active/}
+  end
+end
+
 control 'cis-benchmark-1.5.3' do
   title 'Ensure address space layout randomization (ASLR) is enabled'
   desc 'Address space layout randomization (ASLR) is an exploit mitigation
@@ -162,7 +180,25 @@ control 'cis-benchmark-1.6.3' do
   end
 end
 
-control 'cis-benchmark-1.7.1.2' do
+control 'cis-benchmark-1.7.1.1' do
+  title 'Ensure message of the day is configured properly'
+  desc 'The contents of the /etc/motd file are displayed to users after login
+        and function as a message of the day for authenticated users. Unix-based
+        systems have typically displayed information about the OS release and
+        patch level upon logging in to the system. This information can be
+        useful to developers who are developing software for a particular OS
+        platform. If mingetty(8) supports the following options, they display
+        operating system information: \m - machine architecture \r - operating
+        system release \s - operating system name \v - operating system version'
+  impact 0.9
+
+  %w(10-help-text 51-cloudguest 90-updates-available 91-release-upgrade).each do |motd|
+    describe file ('/etc/update-motd.d/#{motd}') do
+      it {should_not exist}
+    end
+  end
+
+control 'cis-benchmark-1.7.1.2-1.7.1.3' do
   title 'Ensure local login warning banner is configured properly'
   desc 'The contents of the /etc/issue file are displayed to users prior to
         login for local terminals. Unix-based systems have typically displayed
@@ -174,31 +210,8 @@ control 'cis-benchmark-1.7.1.2' do
         name \v - operating system version'
   impact 0.9
 
-  describe file('/etc/issue') do
-    its('content') {should_not match /\\m/}
-    its('content') {should_not match /\\r/}
-    its('content') {should_not match /\\s/}
-    its('content') {should_not match /\\v/}
-  end
-end
-
-control 'cis-benchmark-1.7.1.3' do
-  title 'Ensure remote login warning banner is configured properly'
-  desc 'The contents of the /etc/issue.net file are displayed to users prior to
-        login for remote connections from configured services. Unix-based
-        systems have typically displayed information about the OS release and
-        patch level upon logging in to the system. This information can be
-        useful to developers who are developing software for a particular OS
-        platform. If mingetty(8) supports the following options, they display
-        operating system information: \m - machine architecture \r - operating
-        system release \s - operating system name \v - operating system version'
-  impact 0.9
-
-  describe file('/etc/issue.net') do
-    its('content') {should_not match /\\m/}
-    its('content') {should_not match /\\r/}
-    its('content') {should_not match /\\s/}
-    its('content') {should_not match /\\v/}
+  describe file('/etc/update-motd.d/11-disclaimer') do
+    it {should exist}
   end
 end
 
@@ -276,6 +289,19 @@ control 'cis-benchmark-2.1.11' do
 
   describe package('openbsd-inetd') do
     it {should_not be_installed}
+  end
+end
+
+control 'cis-benchmark-2.2.1.1' do
+  title 'Ensure time synchronization is in use'
+  desc 'System time should be synchronized between all systems in an
+        environment. This is typically done by establishing an authoritative
+        time server or set of servers and having all systems synchronize their
+        clocks to them.'
+  impact 0.9
+
+  describe package('chrony') do
+    it {should be_installed}
   end
 end
 
