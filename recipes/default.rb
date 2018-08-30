@@ -515,3 +515,41 @@ end
 end
 
 #TODO:Benchmark 6.1.10 - 6.2.20 & update bookstack CHRIS
+
+# 6.1.10 - This will not be implemented due to the nature of Kubernetes
+# some Container images may have world-writable files on purpose. 
+
+# 6.1.11 - Same as 6.1.10
+# Containers will almost never use the same UIDs as what exists in /etc/passwd
+
+# 6.1.12 - Same as 6.1.11
+# Containers will almost never use the same GIDs as what exists in /etc/passwd
+
+# 6.1.13 - cannot be implemented as there are two many variables to cover at
+# the moment
+
+# 6.1.14 - Same as 6.1.13
+
+# 6.2.1 - Cannot be implemented in Chef
+# 6.2.2 - Same as 6.2.1
+# 6.2.3 - Same as 6.2.1
+# 6.2.4 - Same as 6.2.1
+# 6.2.5 - Same as 6.2.1
+# 6.2.6 - Cannot be implemented in ANYTHING
+# 6.2.7 - Users are managed by another cookbook
+# 6.2.8 - Same as 6.2.7
+# 6.2.9 - Same as 6.2.7
+# 6.2.10 - Same as 6.2.7
+# 6.2.11 - TODO: implement in Users Cookbook
+# 6.2.12 - TODO: implement in Users Cookbook
+# 6.2.13 - TODO: implement in Users Cookbook
+# 6.2.14 - TODO: implement in Users Cookbook
+# 6.2.15 - Same as 6.2.7
+# 6.2.16 - Same as 6.2.7
+# 6.2.17 - Same as 6.2.7
+# 6.2.18 - Same as 6.2.7
+# 6.2.19 - Same as 6.2.7
+# 6.2.20 - Same as 6.2.1
+
+
+
