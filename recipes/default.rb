@@ -322,7 +322,7 @@ template '/etc/audit/audit.rules' do
   notifies :restart, 'service[auditd]'
 end
 
-# TODO: Research Benchmark 4.1.12 & update bookstack
+# TODO: Research Benchmark 4.1.12 & update bookstack Chris
 
 # Benchmark 4.2.1.1
 service 'rsyslog' do
@@ -480,13 +480,8 @@ replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
   line 'Banner /etc/issue.net'
 end
 
-# TODO: Benchmark 5.4.2 - 5.6 & update bookstack CHRIS
+# TODO: Benchmark 5.3.1 - 5.6 add more detail to bookstack CHRIS
 # Notes for Bookstack:
-# 5.4.2 cannot be easily implemented in Chef without potentally causing harm
-# to other services, as such, we won't do this unless the tests show specific
-# examples.
-
-# 5.4.3 could cause the same issue as 5.4.2, we'll test for it
 
 # TODO: Implement 5.4.4
 
@@ -514,32 +509,8 @@ end
   end
 end
 
-#TODO:Benchmark 6.1.10 - 6.2.20 & update bookstack CHRIS
+#TODO:Benchmark 6.1.3 - 6.2.20 add more detail to bookstack CHRIS
 
-# 6.1.10 - This will not be implemented due to the nature of Kubernetes
-# some Container images may have world-writable files on purpose.
-
-# 6.1.11 - Same as 6.1.10
-# Containers will almost never use the same UIDs as what exists in /etc/passwd
-
-# 6.1.12 - Same as 6.1.11
-# Containers will almost never use the same GIDs as what exists in /etc/passwd
-
-# 6.1.13 - cannot be implemented as there are two many variables to cover at
-# the moment
-
-# 6.1.14 - Same as 6.1.13
-
-# 6.2.1 - Cannot be implemented in Chef
-# 6.2.2 - Same as 6.2.1
-# 6.2.3 - Same as 6.2.1
-# 6.2.4 - Same as 6.2.1
-# 6.2.5 - Same as 6.2.1
-# 6.2.6 - Cannot be implemented in ANYTHING
-# 6.2.7 - Users are managed by another cookbook
-# 6.2.8 - Same as 6.2.7
-# 6.2.9 - Same as 6.2.7
-# 6.2.10 - Same as 6.2.7
 # Benchmark 6.2.11 - 6.2.14
 node[:users][:active].each do |u|
   %w(.forward .netrc .rhosts).each do |f|
@@ -548,10 +519,3 @@ node[:users][:active].each do |u|
     end
   end
 end
-
-# 6.2.15 - Same as 6.2.7
-# 6.2.16 - Same as 6.2.7
-# 6.2.17 - Same as 6.2.7
-# 6.2.18 - Same as 6.2.7
-# 6.2.19 - Same as 6.2.7
-# 6.2.20 - Same as 6.2.1
