@@ -66,6 +66,10 @@ package 'aide' do
 #  notifies :run 'execute[aideinit]' TODO: finish implementation of aideinit
 end
 
+# execute 'aideinit' do
+#
+# end
+
 # TODO: Finish implementation of 1.3.2 and update bookstack for 1.3.1 & 1.3.2
 
 # Benchmark: 1.4.1
