@@ -2,5 +2,5 @@ source 'https://supermarket.chef.io'
 
 metadata
 
-cookbook 'apt', '~> 6.1.4'
+cookbook 'apt', '~> 7.0.0'
 cookbook 'line', '2.0.2'
