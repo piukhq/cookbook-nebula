@@ -334,9 +334,11 @@ service 'rsyslog' do
 end
 
 # Benchmark 4.2.1.2 & 4.2.1.4 TODO: Improve below and update spec.rb
-file '/etc/rsyslog.d/99-graylog.conf' do
-  content "*.* @@#{node[:graylog][:connection]};RSYSLOG_SyslogProtocol23Format"
-  notifies :restart, 'service[rsyslog]', :immediately
+if node.chef_environment == 'prod'
+  file '/etc/rsyslog.d/99-graylog.conf' do
+    content "*.* @@#{node[:graylog][:connection]};RSYSLOG_SyslogProtocol23Format"
+    notifies :restart, 'service[rsyslog]', :immediately
+  end
 end
 
 # Benchmark 4.2.1.3
