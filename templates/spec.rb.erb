@@ -816,8 +816,7 @@ control 'cis-benchmark-6.1.10' do
         more information.'
   impact 0.9
 
-  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I \
-'{}' find '{}' -xdev -type f -perm -0002") do
+  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002 | grep -v \".kube/http-cache\"") do
     its(:stdout) {should eq ""}
   end
 end
