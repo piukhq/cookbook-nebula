@@ -323,6 +323,9 @@ template '/etc/audit/audit.rules' do
   group 'root'
   mode 0644
   source 'auditd/rules.erb'
+  variables(
+    :users => node[:users][:active]
+  )
   notifies :restart, 'service[auditd]'
 end
 

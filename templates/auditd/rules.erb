@@ -47,3 +47,7 @@
 -w /sbin/modprobe -p x -k modules
 -a always,exit -F arch=b64 -S init_module -S delete_module -k modules
 -e 2
+<% @users.each do |u| %>
+-a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history.LOCK -k exclude_file
+-a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history -k exclude_file
+<% end %>
