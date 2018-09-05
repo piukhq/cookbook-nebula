@@ -865,6 +865,7 @@ control 'cis-benchmark-6.1.2-6.1.9' do
   end
 end
 
+<% if !node.run_list?('role[kworker]') %>
 control 'cis-benchmark-6.1.10' do
   title 'Ensure no world writable files exist'
   desc 'Unix-based systems support variable settings to control access to files.
@@ -901,6 +902,7 @@ control 'cis-benchmark-6.1.12' do
     its(:stdout) {should eq ""}
   end
 end
+<% end %>
 
 control 'cis-benchmark-6.2.2-6.2.4' do
   title 'Ensure no legacy "+" entries exist'
