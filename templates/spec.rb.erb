@@ -4,7 +4,14 @@ control 'cis-benchmark-1.1.1' do
         filesystems are disabled'
   impact 0.9
 
-  %w(cramfs freevxfs jffs2 hfs hfsplus udf).each do |fs|
+  %w(
+    cramfs
+    freevxfs
+    jffs2
+    hfs
+    hfsplus
+    udf
+  ).each do |fs|
     describe command("modprobe -n -v #{fs}") do
       its(:stdout) {should match 'install /bin/true \n'}
     end
@@ -193,7 +200,12 @@ control 'cis-benchmark-1.7.1.1' do
         system release \s - operating system name \v - operating system version'
   impact 0.9
 
-  %w(10-help-text 51-cloudguest 90-updates-available 91-release-upgrade).each do |motd|
+  %w(
+    10-help-text
+    51-cloudguest
+    90-updates-available
+    91-release-upgrade
+  ).each do |motd|
     describe file ('/etc/update-motd.d/#{motd}') do
       it {should_not exist}
     end
@@ -263,7 +275,12 @@ control 'cis-benchmark-2.1.6-2.1.9' do
   desc 'Ensure rsh, talk, telnet and tftp servers are not enabled'
   impact 0.9
 
-  %w(/etc/inetd.conf /etc/inetd.d /etc/xinetd.conf /etc/xinetd.d/).each do |f|
+  %w(
+    /etc/inetd.conf
+    /etc/inetd.d
+    /etc/xinetd.conf
+    /etc/xinetd.d/
+  ).each do |f|
     describe file(f) do
       it {should_not exist}
     end
@@ -339,8 +356,21 @@ control 'cis-benchmark-2.2.3-2.2.14' do
         Proxy Server and SNMP Server are not enabled'
   impact 0.9
 
-  %w(avahi-daemon cups isc-dhcp-server isc-dhcp-server6 slapd nfs-server
-     rpcbind bind9 vsftpd apache2 dovecot smbd squid snmpd).each do |s|
+  %w(avahi-daemon
+    cups
+    isc-dhcp-server
+    isc-dhcp-server6
+    slapd
+    nfs-server
+    rpcbind
+    bind9
+    vsftpd
+    apache2
+    dovecot
+    smbd
+    squid
+    snmpd
+  ).each do |s|
     describe systemd_service(s) do
       it {should_not be_enabled}
     end
@@ -352,7 +382,11 @@ control 'cis-benchmark-2.2.15-2.2.17' do
   desc 'Ensure postfix, rsync and NIS Server are not enabled'
   impact 0.9
 
-  %w(postfix rsync nis).each do |s|
+  %w(
+    postfix
+    rsync
+    nis
+  ).each do |s|
     describe systemd_service(s) do
       it {should_not be_enabled}
     end
@@ -364,7 +398,14 @@ control 'cis-benchmark-2.3.1-2.3.5' do
   desc 'Ensure NIS, rsh, talk, telnet and LDAP are not installed'
   impact 0.9
 
-  %w(nis rsh-client rsh-redone-client talk telnet ldap-utils).each do |p|
+  %w(
+    nis
+    rsh-client
+    rsh-redone-client
+    talk
+    telnet
+    ldap-utils
+  ).each do |p|
     describe package(p) do
       it {should_not be_installed}
     end
@@ -427,18 +468,6 @@ control 'cis-benchmark-3.2.3' do
   describe file('/etc/sysctl.conf') do
     its('content') {should match /net.ipv4.conf.all.secure_redirects = 0/}
     its('content') {should match /net.ipv4.conf.default.secure_redirects = 0/}
-  end
-end
-
-control 'cis-benchmark-3.2.4' do
-  title 'Ensure suspicious packets are logged'
-  desc 'When enabled, this feature logs packets with un-routable source
-        addresses to the kernel log.'
-  impact 0.9
-
-  describe file('/etc/sysctl.conf') do
-    its('content') {should match /net.ipv4.conf.all.log_martians = 1/}
-    its('content') {should match /net.ipv4.conf.default.log_martians = 1/}
   end
 end
 
@@ -508,7 +537,12 @@ control 'cis-benchmark-3.5.1-3.5.4' do
   desc 'Ensure DCCP, SCTP, RDS and TIPC are disabled'
   impact 0.9
 
-  %w(dccp sctp rds tipc).each do |s|
+  %w(
+    dccp
+    sctp
+    rds
+    tipc
+  ).each do |s|
     describe command("modprobe -n -v #{s}") do
       its(:stdout) {should match 'install /bin/true \n'}
     end
@@ -668,7 +702,13 @@ control 'cis-benchmark-5.1.3-5.1.7' do
         /etc/cron.weekly, /etc/cron.monthly and /etc/cron.d are configured'
   impact 0.9
 
-  %w(/etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly /etc/cron.d).each do |f|
+  %w(
+    /etc/cron.hourly
+    /etc/cron.daily
+    /etc/cron.weekly
+    /etc/cron.monthly
+    /etc/cron.d
+  ).each do |f|
     describe file(f) do
       its('uid') {should eq 0}
       its('gid') {should eq 0}
@@ -689,7 +729,10 @@ control 'cis-benchmark-5.1.8' do
         cron.allow file only controls administrative access to the crontab
         command for scheduling and modifying cron jobs.'
 
-  %w(/etc/cron.deny /etc/at.deny).each do |f|
+  %w(
+    /etc/cron.deny
+    /etc/at.deny
+  ).each do |f|
     describe file(f) do
       it {should_not exist}
     end
@@ -708,7 +751,10 @@ control 'cis-benchmark-5.1.8' do
         cron.allow file only controls administrative access to the crontab
         command for scheduling and modifying cron jobs.'
 
-  %w(/etc/cron.allow /etc/at.allow).each do |f|
+  %w(
+    /etc/cron.allow
+    /etc/at.allow
+  ).each do |f|
     describe file(f) do
       it {should exist}
       its('uid') {should eq 0}
@@ -796,13 +842,23 @@ control 'cis-benchmark-6.1.2-6.1.9' do
   desc 'Ensure permissions for /etc/passwd and /etc/group are configured'
   impact 0.9
 
-  %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
+  %w(
+    /etc/passwd
+    /etc/group
+    /etc/passwd-
+    /etc/group-
+  ).each do |f|
     describe file(f) do
       its('mode') { should cmp '0644'}
     end
   end
 
-  %w(/etc/shadow /etc/gshadow /etc/shadow- /etc/gshadow-).each do |f|
+  %w(
+    /etc/shadow
+    /etc/gshadow
+    /etc/shadow-
+    /etc/gshadow-
+  ).each do |f|
     describe file(f) do
       its('mode') { should cmp '0640'}
     end
@@ -816,7 +872,8 @@ control 'cis-benchmark-6.1.10' do
         more information.'
   impact 0.9
 
-  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type f -perm -0002 | grep -v \".kube/http-cache\"") do
+  describe command("df --local -P | awk {'if (NR!=1) print $6'} | xargs -I \
+'{}' find '{}' -xdev -type f -perm -0002 | grep -v \".kube/http-cache\"") do
     its(:stdout) {should eq ""}
   end
 end
@@ -853,7 +910,11 @@ control 'cis-benchmark-6.2.2-6.2.4' do
         exist in files that have been imported from other platforms.'
   impact 0.9
 
-  %w(/etc/passwd /etc/shadow /etc/group).each do |f|
+  %w(
+    /etc/passwd
+    /etc/shadow
+    /etc/group
+  ).each do |f|
     describe file(f) do
       its('content') {should_not match /\+/}
     end
