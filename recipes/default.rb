@@ -245,7 +245,9 @@ end
   "net.ipv4.conf.all.accept_redirects",
   "net.ipv4.conf.default.accept_redirects",
   "net.ipv4.conf.all.secure_redirects",
-  "net.ipv4.conf.default.secure_redirects"
+  "net.ipv4.conf.default.secure_redirects",
+  "net.ipv4.conf.all.log_martians",
+  "net.ipv4.conf.default.log_martians"
 ].each do |line|
   append_if_no_line "add_#{line}_to_/etc/sysctl.conf" do
     path '/etc/sysctl.conf'
@@ -260,8 +262,6 @@ end
 end
 
 [
-  "net.ipv4.conf.all.log_martians",
-  "net.ipv4.conf.default.log_martians",
   "net.ipv4.icmp_echo_ignore_broadcasts",
   "net.ipv4.icmp_ignore_bogus_error_responses",
   "net.ipv4.conf.all.rp_filter",
@@ -273,6 +273,7 @@ end
     line "#{line} = 1"
     notifies :run, "execute[apply_#{line}]", :immediately
   end
+
   execute "apply_#{line}" do
     command "sysctl -w #{line}=1"
     action :nothing
