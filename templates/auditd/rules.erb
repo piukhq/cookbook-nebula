@@ -46,8 +46,10 @@
 -w /sbin/rmmod -p x -k modules
 -w /sbin/modprobe -p x -k modules
 -a always,exit -F arch=b64 -S init_module -S delete_module -k modules
--e 2
+-a never,exclude -F comm="iptables-restor" -k exclude_iptables_restor
+-a never,exclude -F comm="iptables" -k exclude_iptables
 <% @users.each do |u| %>
--a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history.LOCK -k exclude_file
--a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history -k exclude_file
+-a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history.LOCK -k exclude_<%= u[:name] %>_history_lock
+-a never,exclude -F path=/home/<%= u[:name] %>/.zsh_history -k exclude_<%= u[:name] %>_history
 <% end %>
+-e 2

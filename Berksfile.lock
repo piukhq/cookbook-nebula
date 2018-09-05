@@ -8,6 +8,6 @@ DEPENDENCIES
 GRAPH
   apt (7.0.0)
   line (2.0.2)
-  nebula (1.0.4)
+  nebula (1.0.5)
     apt (>= 0.0.0)
     line (>= 0.0.0)
