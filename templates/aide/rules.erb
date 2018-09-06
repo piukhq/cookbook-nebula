@@ -1,0 +1,39 @@
+# Directories
+<% @users.each do |u| %>
+!/home/<%= u[:name] %>$
+!/home/<%= u[:name] %>/.*
+<% end %>
+!/var$
+!/var/.*
+!/run$
+!/run/.*
+!/tmp$
+!/tmp/.*
+!/etc/apt/apt.conf.d$
+!/etc/apt/apt.conf.d/.*
+!/etc/audit$
+!/etc/audit/.*
+!/etc/chrony$
+!/etc/chrony/.*
+!/etc/pam.d$
+!/etc/pam.d/.*
+!/etc/default$
+!/etc/default/.*
+!/etc/freeradius$
+!/etc/freeradius/.*
+!/etc/ssh$
+!/etc/ssh/.*
+!/etc/etcd$
+!/etc/etcd/.*
+!/etc/update-motd.d$
+!/etc/update-motd.d/.*
+!/usr/local/src/inspec$
+!/usr/local/src/inspec/.*
+!/data$
+!/data/.*
+
+#Files
+!/vmlinuz$
+!/etc/at.allow$
+!/etc/cron.allow$
+
