@@ -4,3 +4,4 @@ version '1.0.5'
 
 depends 'apt'
 depends 'line'
+depends 'cron'
