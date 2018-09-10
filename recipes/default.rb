@@ -347,8 +347,6 @@ template '/etc/audit/audit.rules' do
   notifies :restart, 'service[auditd]'
 end
 
-# TODO: Research Benchmark 4.1.12 & update bookstack Chris
-
 # Benchmark 4.2.1.1
 service 'rsyslog' do
   action :enable
@@ -507,16 +505,6 @@ replace_or_add 'configure_Banner_in_/etc/ssh/sshd_config' do
   line 'Banner /etc/issue.net'
 end
 
-# TODO: Benchmark 5.3.1 - 5.6 add more detail to bookstack CHRIS
-# Notes for Bookstack:
-
-# TODO: Implement 5.4.4
-
-# 5.4.5 not sure if there is any reasonable value in implementing this
-# Office computers have a screen sleep policy of 2 minutes.
-
-# 5.5 This is a VM, this does not apply.
-
 # Benchmark 5.6
 append_if_no_line 'prevent_access_to_su' do
   path '/etc/pam.d/su'
@@ -535,8 +523,6 @@ end
     mode 0640
   end
 end
-
-#TODO:Benchmark 6.1.3 - 6.2.20 add more detail to bookstack CHRIS
 
 # Benchmark 6.2.11 - 6.2.14
 node[:users][:active].each do |u|
