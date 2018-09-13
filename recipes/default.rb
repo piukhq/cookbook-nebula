@@ -1,9 +1,28 @@
+# ClamAV
+
+%w(clamav clamav-daemon).each do |a|
+  package a do
+    action :install
+    notifies :run, 'execute[freshclam]', :immediately
+  end
+end
+
+execute 'freshclam' do
+  command 'freshclam'
+  action :nothing
+end
+
+cron_d 'daily-clamscan' do
+  minute 0
+  hour 3
+  command 'freshclam && clamscan -r -i --exclude-dir="^/sys" --exclude-dir="^/proc" / -l /var/log/clamscan.log'
+end
+
 # CIS Benchmarks
 # These scripts are intentionally inefficient to make it easier to break each
 # "feature" down to a specific spec in the benchmarks
 
 include_recipe 'apt'
-# URL: https://packages.chef.io/files/stable/inspec/2.2.70/ubuntu/16.04/inspec_2.2.70-1_amd64.deb
 
 directory '/usr/local/src/inspec'
 remote_file '/usr/local/src/inspec/inspec_2.2.70-1_amd64.deb' do
