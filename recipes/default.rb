@@ -42,7 +42,7 @@ end
 file '/etc/modprobe.d/disabled_filesystems.conf' do
   owner 'root'
   group 'root'
-  mode 0644
+  mode '0644'
   action :create_if_missing
 end
 
@@ -69,7 +69,7 @@ end
 Dir['/*'].each do |d|
   if File.world_writable?(d) && !File.sticky?(d)
     directory d do
-      mode 01777
+      mode '01777'
     end
   end
 end
@@ -87,10 +87,10 @@ end
 template '/etc/aide/aide.conf.d/99_bink_mods' do
   owner 'root'
   group 'root'
-  mode 0644
+  mode '0644'
   source 'aide/rules.erb'
   variables(
-    :users => node[:users][:active]
+    users: node[:users][:active]
   )
   notifies :run, 'execute[aideinit]'
 end
@@ -110,7 +110,7 @@ end
 
 # Benchmark: 1.4.1
 file '/boot/grub/grub.cfg' do
-  mode 0400
+  mode '0400'
 end
 
 # Benchmark: 1.5.1
@@ -169,7 +169,7 @@ file '/etc/update-motd.d/11-disclaimer' do
   content "\#!/bin/bash\necho 'You are connecting to a Loyalty Angels Ltd Server.'\necho 'Your activity is logged and recorded for audit purposes.'"
   owner 'root'
   group 'root'
-  mode  0755
+  mode  '0755'
 end
 
 # Benchmark: 1.7.1.4 - 1.7.1.6
@@ -177,7 +177,7 @@ end
   file "/etc/#{f}" do
     owner 'root'
     group 'root'
-    mode 0644
+    mode '0644'
   end
 end
 
@@ -273,18 +273,18 @@ delete_lines 'remove_empty_lines' do
   pattern /^\s*$/
 end
 
-[
-  "net.ipv4.conf.all.send_redirects",
-  "net.ipv4.conf.default.send_redirects",
-  "net.ipv4.conf.all.accept_source_route",
-  "net.ipv4.conf.default.accept_source_route",
-  "net.ipv4.conf.all.accept_redirects",
-  "net.ipv4.conf.default.accept_redirects",
-  "net.ipv4.conf.all.secure_redirects",
-  "net.ipv4.conf.default.secure_redirects",
-  "net.ipv4.conf.all.log_martians",
-  "net.ipv4.conf.default.log_martians"
-].each do |line|
+%w(
+  net.ipv4.conf.all.send_redirects
+  net.ipv4.conf.default.send_redirects
+  net.ipv4.conf.all.accept_source_route
+  net.ipv4.conf.default.accept_source_route
+  net.ipv4.conf.all.accept_redirects
+  net.ipv4.conf.default.accept_redirects
+  net.ipv4.conf.all.secure_redirects
+  net.ipv4.conf.default.secure_redirects
+  net.ipv4.conf.all.log_martians
+  net.ipv4.conf.default.log_martians
+).each do |line|
   append_if_no_line "add_#{line}_to_/etc/sysctl.conf" do
     path '/etc/sysctl.conf'
     line "#{line} = 0"
@@ -298,11 +298,11 @@ end
 end
 
 [
-  "net.ipv4.icmp_echo_ignore_broadcasts",
-  "net.ipv4.icmp_ignore_bogus_error_responses",
-  "net.ipv4.conf.all.rp_filter",
-  "net.ipv4.conf.default.rp_filter",
-  "net.ipv4.tcp_syncookies"
+  'net.ipv4.icmp_echo_ignore_broadcasts',
+  'net.ipv4.icmp_ignore_bogus_error_responses',
+  'net.ipv4.conf.all.rp_filter',
+  'net.ipv4.conf.default.rp_filter',
+  'net.ipv4.tcp_syncookies',
 ].each do |line|
   append_if_no_line "add_#{line}_to_/etc/sysctl.conf" do
     path '/etc/sysctl.conf'
@@ -358,10 +358,10 @@ end
 template '/etc/audit/audit.rules' do
   owner 'root'
   group 'root'
-  mode 0644
+  mode '0644'
   source 'auditd/rules.erb'
   variables(
-    :users => node[:users][:active]
+    users: node[:users][:active]
   )
   notifies :restart, 'service[auditd]'
 end
@@ -394,13 +394,13 @@ end
 
 # Benchmark 5.1.2
 file '/etc/crontab' do
-  mode 0600
+  mode '0600'
 end
 
 # Benchmark 5.1.3 - 5.1.7
 %w(hourly daily weekly monthly d).each do |d|
   directory "/etc/cron.#{d}" do
-    mode 0700
+    mode '0700'
   end
 end
 
@@ -416,7 +416,7 @@ end
     action :touch
     owner 'root'
     group 'root'
-    mode 0600
+    mode '0600'
   end
 end
 
@@ -425,7 +425,7 @@ file '/etc/ssh/sshd_config' do
   action :touch
   owner 'root'
   group 'root'
-  mode 0600
+  mode '0600'
 end
 
 # Benchmark 5.2.2
@@ -498,13 +498,13 @@ append_if_no_line 'configure_MACs_in_/etc/ssh/sshd_config' do
 end
 
 # Benchmark 5.2.12
-replace_or_add "configure_ClientAliveInterval_in_/etc/ssh/sshd_config" do
+replace_or_add 'configure_ClientAliveInterval_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'ClientAliveInterval '
   line 'ClientAliveInterval 300'
 end
 
-replace_or_add "configure_ClientAliveCountMax_in_/etc/ssh/sshd_config" do
+replace_or_add 'configure_ClientAliveCountMax_in_/etc/ssh/sshd_config' do
   path '/etc/ssh/sshd_config'
   pattern 'ClientAliveCountMax '
   line 'ClientAliveCountMax 0'
@@ -533,13 +533,13 @@ end
 # Benchmark 6.1.2 - 6.1.9
 %w(/etc/passwd /etc/group /etc/passwd- /etc/group-).each do |f|
   file f do
-    mode 0644
+    mode '0644'
   end
 end
 
 %w(/etc/shadow /etc/gshadow /etc/shadow- /etc/gshadow-).each do |f|
   file f do
-    mode 0640
+    mode '0640'
   end
 end
 
