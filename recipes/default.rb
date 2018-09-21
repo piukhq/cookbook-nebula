@@ -67,10 +67,9 @@ end
 
 # Benchmark: 1.1.20
 Dir['/*'].each do |d|
-  if File.world_writable?(d) && !File.sticky?(d)
-    directory d do
-      mode '01777'
-    end
+  next if File.world_writable?(d) && !File.sticky?(d)
+  directory d do
+    mode '01777'
   end
 end
 
