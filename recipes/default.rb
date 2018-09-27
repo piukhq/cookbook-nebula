@@ -10,6 +10,7 @@ end
 execute 'freshclam' do
   command 'freshclam'
   action :nothing
+  ignore_failure true
 end
 
 cron_d 'daily-clamscan' do
