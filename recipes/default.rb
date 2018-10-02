@@ -66,14 +66,6 @@ append_if_no_line 'set nodev nosuid and noexec for /dev/shm in fstab' do
   notifies :run, 'execute[remount-dev-shm]', :immediately
 end
 
-# Benchmark: 1.1.20
-Dir['/*'].each do |d|
-  next if File.world_writable?(d) && !File.sticky?(d)
-  directory d do
-    mode '01777'
-  end
-end
-
 # Benchmark: 1.1.21
 service 'autofs' do
   action :disable
