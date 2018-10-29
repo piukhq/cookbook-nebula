@@ -187,19 +187,13 @@ package 'openbsd-inetd' do
   action :remove
 end
 
-# Benchmark: 2.2.1.1
+# Benchmark: 2.2.1.1 - 2.2.1.3
 package 'chrony' do
+  action :remove
+end
+
+package 'ntp' do
   action :install
-end
-
-# Benchmark 2.2.1.3
-service 'chrony' do
-  action :nothing
-end
-
-template '/etc/chrony/chrony.conf' do
-  source 'chrony/config.erb'
-  notifies :restart, 'service[chrony]'
 end
 
 # Benchmark: 2.2.2
