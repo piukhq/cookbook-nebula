@@ -188,12 +188,39 @@ package 'openbsd-inetd' do
 end
 
 # Benchmark: 2.2.1.1 - 2.2.1.3
-package 'chrony' do
+# We're using PTP instead of NTP on the advice of Microsoft
+
+package 'ntpd' do
   action :remove
 end
 
-package 'ntp' do
-  action :install
+service 'systemd-timesyncd' do
+  action :disable
+end
+
+%w(chrony linuxptp).each do |p|
+  package p
+end
+
+systemd_service 'ptp4l' do
+  unit do
+    description 'Precision Time Protocol (PTP) service'
+    action [:create, :enable, :start]
+  end
+  install do
+    wanted_by 'multi-user.target'
+  end
+  service do
+    type 'simple'
+    exec_start '/usr/sbin/ptp4l -f /etc/linuxptp/ptp4l.conf -i eth0 -S'
+    restart 'on-failure'
+    restart_sec '5s'
+  end
+end
+
+template '/etc/linuxptp/timemaster.conf' do
+  source 'timemaster.conf.erb'
+  notifies :restart, 'systemd_service[ptp4l]'
 end
 
 # Benchmark: 2.2.2

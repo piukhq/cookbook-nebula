@@ -317,7 +317,7 @@ control 'cis-benchmark-2.2.1.1' do
         clocks to them.'
   impact 0.9
 
-  describe package('ntp') do
+  describe package('linuxptp') do
     it {should be_installed}
   end
 end
@@ -326,11 +326,11 @@ control 'cis-benchmark-2.2.1.3' do
   title 'Ensure ntp is configured'
   desc 'ntp is a daemon which implements the Network Time Protocol(NTP) is
         designed to synchronize system clocks across a variety of systems and
-        use a source that is highly accurate.'
+        use a source that is highly accurate. In Azure, this is PTP, not NTP'
   impact 0.9
 
-  describe file('/etc/ntp.conf') do
-    its('content') {should include 'pool ntp.ubuntu.com'}
+  describe file('/etc/linuxptp/timemaster.conf') do
+    its('content') {should include 'interfaces eth0'}
   end
 end
 
