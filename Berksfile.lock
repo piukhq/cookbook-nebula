@@ -1,5 +1,5 @@
 DEPENDENCIES
-  apt (~> 7.0.0)
+  apt (~> 7.1.1)
   cron (~> 6.2.1)
   line (= 2.0.2)
   nebula
@@ -8,7 +8,7 @@ DEPENDENCIES
   systemd (~> 3.2.3)
 
 GRAPH
-  apt (7.0.0)
+  apt (7.1.1)
   cron (6.2.1)
   line (2.0.2)
   nebula (1.0.11)
