@@ -6,3 +6,4 @@ metadata
 cookbook 'apt', '~> 7.0.0'
 cookbook 'line', '2.0.2'
 cookbook 'cron', '~> 6.2.1'
+cookbook 'systemd', '~> 3.2.3'
