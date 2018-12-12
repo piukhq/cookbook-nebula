@@ -195,7 +195,7 @@ package 'ntpd' do
 end
 
 service 'systemd-timesyncd' do
-  action :disable
+  action [:enable, :start]
 end
 
 %w(chrony linuxptp).each do |p|
