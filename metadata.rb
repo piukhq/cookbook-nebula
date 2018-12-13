@@ -1,6 +1,6 @@
 name 'nebula'
 description 'Implementation of CIS Benchmarks for Ubuntu'
-version '1.0.11'
+version '1.0.12'
 
 depends 'apt'
 depends 'line'
