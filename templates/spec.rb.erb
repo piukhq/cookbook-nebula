@@ -309,31 +309,6 @@ control 'cis-benchmark-2.1.11' do
   end
 end
 
-control 'cis-benchmark-2.2.1.1' do
-  title 'Ensure time synchronization is in use'
-  desc 'System time should be synchronized between all systems in an
-        environment. This is typically done by establishing an authoritative
-        time server or set of servers and having all systems synchronize their
-        clocks to them.'
-  impact 0.9
-
-  describe package('linuxptp') do
-    it {should be_installed}
-  end
-end
-
-control 'cis-benchmark-2.2.1.3' do
-  title 'Ensure ntp is configured'
-  desc 'ntp is a daemon which implements the Network Time Protocol(NTP) is
-        designed to synchronize system clocks across a variety of systems and
-        use a source that is highly accurate. In Azure, this is PTP, not NTP'
-  impact 0.9
-
-  describe file('/etc/linuxptp/timemaster.conf') do
-    its('content') {should include 'interfaces eth0'}
-  end
-end
-
 control 'cis-benchmark-2.2.2' do
   title 'Ensure X Window System is not installed'
   desc 'The X Window System provides a Graphical User Interface (GUI) where
