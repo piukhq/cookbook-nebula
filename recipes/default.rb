@@ -499,3 +499,16 @@ node[:users][:active].each do |u|
     end
   end
 end
+
+# Lynis
+
+apt_repository 'lynis' do
+  uri 'https://packages.cisofy.com/community/lynis/deb/'
+  components ['main']
+  distribution 'xenial'
+  key 'C80E383C3DE9F082E01391A0366C67DE91CA5D5F'
+end
+
+package 'lynis' do
+  action :upgrade
+end
