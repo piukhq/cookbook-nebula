@@ -1,19 +1,13 @@
 DEPENDENCIES
-  apt (~> 7.1.1)
-  cron (~> 6.2.1)
-  line (= 2.0.2)
+  line (~> 2.9.0)
   nebula
     path: .
     metadata: true
   systemd (~> 3.2.3)
 
 GRAPH
-  apt (7.1.1)
-  cron (6.2.1)
-  line (2.0.2)
-  nebula (1.0.14)
-    apt (>= 0.0.0)
-    cron (>= 0.0.0)
+  line (2.9.0)
+  nebula (2.0.0)
     line (>= 0.0.0)
     systemd (>= 0.0.0)
   systemd (3.2.4)
