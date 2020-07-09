@@ -210,7 +210,7 @@ end
 template '/etc/audit/audit.rules' do
   owner 'root'
   group 'root'
-  mode '0644'
+  mode '0640'
   source 'auditd/rules.erb'
   variables(
     users: node['users']['active']
