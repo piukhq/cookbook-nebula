@@ -34,5 +34,8 @@ cookbook_file '/etc/ssh/sshd_config' do
   notifies :restart, 'service[sshd]'
 end
 
-include_recipe 'nebula::cis'
+if chef_environment != 'uksouth-prod' && chef_environment != 'uksouth-sandbox'
+  include_recipe 'nebula::cis'
+end
+
 include_recipe 'nebula::inspec'
