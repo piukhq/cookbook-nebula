@@ -3,11 +3,8 @@ DEPENDENCIES
   nebula
     path: .
     metadata: true
-  systemd (~> 3.2.3)
 
 GRAPH
   line (2.9.0)
-  nebula (2.0.4)
+  nebula (2.0.5)
     line (>= 0.0.0)
-    systemd (>= 0.0.0)
-  systemd (3.2.4)
