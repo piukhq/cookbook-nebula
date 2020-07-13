@@ -7,7 +7,7 @@ DEPENDENCIES
 
 GRAPH
   line (2.9.0)
-  nebula (2.0.3)
+  nebula (2.0.4)
     line (>= 0.0.0)
     systemd (>= 0.0.0)
   systemd (3.2.4)

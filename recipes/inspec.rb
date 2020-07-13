@@ -42,6 +42,7 @@ systemd_unit 'inspec.service' do
     },
     Service: {
       Type: 'oneshot',
+      Environment: 'HOME=/root',
       ExecStart: '/usr/local/src/inspec/inspec.py',
     }
   )
