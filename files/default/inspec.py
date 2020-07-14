@@ -13,7 +13,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 now = datetime.datetime.now()
 yyyymmdd = now.strftime('%Y-%m-%d')
-nowstr = now.strftime('%Y-%m-%dT%H:%M:%SZ')
+nowstr = now.isoformat()
 
 hostname = socket.gethostname()
 try:
