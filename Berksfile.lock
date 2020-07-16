@@ -6,5 +6,5 @@ DEPENDENCIES
 
 GRAPH
   line (2.9.0)
-  nebula (2.0.6)
+  nebula (2.0.7)
     line (>= 0.0.0)
