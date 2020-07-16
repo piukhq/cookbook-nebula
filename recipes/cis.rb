@@ -104,12 +104,19 @@ file '/etc/update-motd.d/11-disclaimer' do
   mode '0755'
 end
 
-# Benchmark: 1.7.1.4 - 1.7.1.6
-%w(motd issue issue.net).each do |f|
+# Benchmark: 1.8.1.2-6
+file '/etc/motd' do
+  owner 'root'
+  group 'root'
+  mode '0644'
+end
+
+%w(issue issue.net).each do |f|
   file "/etc/#{f}" do
     owner 'root'
     group 'root'
     mode '0644'
+    content 'Authorized uses only. All activity may be monitored and reported.'
   end
 end
 
