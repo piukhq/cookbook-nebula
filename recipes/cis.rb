@@ -264,7 +264,6 @@ end
 
 %w(/etc/cron.allow /etc/at.allow).each do |f|
   file f do
-    action :touch
     owner 'root'
     group 'root'
     mode '0600'
