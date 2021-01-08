@@ -24,8 +24,6 @@ berksupload:
     - mkdir ~/.chef
     - echo -e "current_dir = File.dirname(__FILE__)\nlog_level :info\nlog_location STDOUT\nnode_name \"$CHEF_USER\"\nclient_key \"#{current_dir}/user.pem\"\nchef_server_url \"$CHEF_URL\"\ncookbook_path [\"#{current_dir}/../cookbooks\"]" > ~/.chef/knife.rb
     - echo "$CHEF_PEM" > ~/.chef/user.pem
-    - knife cookbook download fury 1.6.0
-    - mv fury-1.6.0 ../fury
     - berks install
     - berks upload
   only:
