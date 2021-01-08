@@ -15,7 +15,7 @@ provisioner:
     environment: vagrant
 
 platforms:
-- name: bento/ubuntu-20.04
+- name: nebula
   driver:
     image_urn: Canonical:0001-com-ubuntu-server-focal:20_04-lts:latest
     vm_name: nebula
@@ -24,7 +24,7 @@ verifier:
   name: inspec
 
 suites:
-- name: jarvis
+- name: nebula
   run_list:
   - recipe[nebula::default]
   verifier:
