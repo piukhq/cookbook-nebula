@@ -144,8 +144,8 @@ Here are the controls from the Ubuntu 18.04 CIS benchmark. Any controls relating
 | 3.5.4.2.4    | Ensure IPv6 firewall rules exist for all open ports (Not Scored)                       | N     | Not implemented as would impact Kubernetes stability          |
 | 3.6          | Ensure wireless interfaces are disabled                                                | Y     |                                                               |
 | 3.7          | Disable IPv6 (Not Scored)                                                              | N     | Not implemented as would impact Kubernetes stability          |
-| 4.1.1.1      | Ensure auditd is installed                                                             | Y     |                                                               |
-| 4.1.1.2      | Ensure auditd service is enabled                                                       | Y     |                                                               |
+| 4.1.1.1      | Ensure auditd is installed                                                             | N     | Not implemented as using auditbeat in black_widow cookbook    |
+| 4.1.1.2      | Ensure auditd service is enabled                                                       | N     | Not implemented as using auditbeat in black_widow cookbook    |
 | 4.1.1.3      | Ensure auditing for processes that start prior to auditd is enabled                    | Y     |                                                               |
 | 4.1.1.4      | Ensure audit_backlog_limit is sufficient                                               | Y     |                                                               |
 | 4.1.2.1      | Ensure audit log storage size is configured                                            | Y     |                                                               |

@@ -1,6 +1,11 @@
 ---
 driver:
-  name: vagrant
+  name: azurerm
+  location: "UK South"
+  machine_size: "Standard_D4s_v3"
+
+transport:
+  ssh_key: ~/.ssh/id_bink_azure_terraform
 
 provisioner:
   name: chef_solo
@@ -10,8 +15,10 @@ provisioner:
     environment: vagrant
 
 platforms:
-# - name: bento/ubuntu-18.04
-- name: bento/ubuntu-16.04
+- name: bento/ubuntu-20.04
+  driver:
+    image_urn: Canonical:0001-com-ubuntu-server-focal:20_04-lts:latest
+    vm_name: nebula
 
 verifier:
   name: inspec

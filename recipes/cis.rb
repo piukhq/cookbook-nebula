@@ -189,13 +189,9 @@ end
   end
 end
 
-# Benchmark 4.1.2
+# Benchmark 4.1.2 - removing in favour of auditbeat
 package 'auditd' do
-  action :install
-end
-
-service 'auditd' do
-  action :enable
+  action :remove
 end
 
 # Benchmark 4.1.3
@@ -211,18 +207,6 @@ end
 execute 'update-grub' do
   command 'update-grub'
   action :nothing
-end
-
-# Benchmark 4.1.4 - 4.1.18
-template '/etc/audit/audit.rules' do
-  owner 'root'
-  group 'root'
-  mode '0640'
-  source 'auditd/rules.erb'
-  variables(
-    users: node['users']['active']
-  )
-  notifies :restart, 'service[auditd]'
 end
 
 # Benchmark 4.2.1.1

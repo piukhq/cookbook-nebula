@@ -512,11 +512,11 @@ end
 
 control 'cis-benchmark-4.1.2' do
   title 'Ensure auditd service is enabled'
-  desc 'Turn on the auditd daemon to record system events.'
+  desc 'Turn on the auditd daemon to record system events. -- disabled in favour of auditbeat'
   impact 0.9
 
   describe systemd_service('auditd') do
-    it {should be_enabled}
+    it {should not be_enabled}
   end
 end
 
