@@ -44,74 +44,59 @@ end
 
 #Benchmark 1.1.12 - 1.1.14
 
-if mount_check = ' findmnt -n /var/tmp | grep -v nodev > /dev/null 2>&1' != ""
-
-
-  execute 'remount-var-tmp' do
-    command 'mount -o remount,nodev,nosuid,noexec /var/tmp'
-    action :nothing
-  end
-
-  append_if_no_line 'set nodev nosuid and noexec for /var/tmp in fstab' do
-    path '/etc/fstab'
-    line 'tmpfs /var/tmp tmpfs nodev,nosuid,noexec 0 0'
-    notifies :run, 'execute[remount-var-tmp]', :immediately
-  end
+execute 'remount-var-tmp' do
+  command 'mount -o remount,nodev,nosuid,noexec /var/tmp'
+  action :nothing
 end
+
+append_if_no_line 'set nodev nosuid and noexec for /var/tmp in fstab' do
+  path '/etc/fstab'
+  line 'tmpfs /var/tmp tmpfs nodev,nosuid,noexec 0 0'
+  notifies :run, 'execute[remount-var-tmp]', :immediately
+  not_if '[[ -z $(findmnt -n /var/tmp) ]]'
+end
+
 
 #Benchmark 1.1.18
-if mount_check = `findmnt -n /home | grep -v nodev > /dev/null 2>&1` != ""
 
-
-  execute 'remount-home' do
-    command 'mount -o remount,nodev,nosuid,noexec /home'
-    action :nothing
-  end
-
-  append_if_no_line 'set nodev nosuid and noexec for /home in fstab' do
-    path '/etc/fstab'
-    line 'tmpfs /home tmpfs nodev,nosuid,noexec 0 0'
-    notifies :run, 'execute[remount-home]', :immediately
-  end
+execute 'remount-home' do
+  command 'mount -o remount,nodev,nosuid,noexec /home'
+  action :nothing
 end
+
+append_if_no_line 'set nodev nosuid and noexec for /home in fstab' do
+  path '/etc/fstab'
+  line 'tmpfs /home tmpfs nodev,nosuid,noexec 0 0'
+  notifies :run, 'execute[remount-home]', :immediately
+  not_if '[[ -z $(findmnt -n /home) ]]'
+end
+
 
 # Benchmark : 1.1.22
 
-  stickybit-check = `df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
-  -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null`
-
-
-if stickybit-check != ""?
-  execute 'stickybit-set' do 
-    command "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
-    -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null | xargs -I '{}' chmod 
-    a+t '{}'"
-    action :immediately
-  end
+execute 'stickybit-set' do 
+  command "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
+  -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null | xargs -I '{}' chmod 
+  a+t '{}'"
+  action :immediately
+  not_if "[[ -z $(df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
+  -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null) ]]"
 end
+
 
 # Benchmark: 1.1.23
 service 'autofs' do
   action :disable
 end
-
+#Skipping the following benchmarks: 
+# 1.1.24 - Disabliing USB could have unindented impact on supporting the VM in azure 
+# 
 
 
 # Benchmark: 1.4.1
 file '/boot/grub/grub.cfg' do
   mode '0400'
 end
-
-# Benchmark: 1.2.2
-execute 'Disable the rhnsd Daemon ' do 
-  command 'systemctl --now disable rhnsd'
-  action :run
-end
-
-# Benchmark: 1.2.4
-execute 'Ensure gpgcheck is globally activated' do 
-  
-
 
 # Benchmark: 1.5.1
 append_if_no_line 'hard core 0' do
