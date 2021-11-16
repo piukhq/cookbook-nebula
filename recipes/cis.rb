@@ -2,7 +2,7 @@
 # These scripts are intentionally inefficient to make it easier to break each
 # "feature" down to a specific spec in the benchmarks
 
-# Benchmarks: 1.1.1.1 - 1.1.1.6
+# Benchmarks: 1.1.1.1 - 1.1.1.7
 file '/etc/modprobe.d/disabled_filesystems.conf' do
   owner 'root'
   group 'root'
@@ -17,7 +17,20 @@ end
   end
 end
 
-# Benchmarks: 1.1.1.14 - 1.1.1.16
+# Benchmarks 1.1.2 - 1.1.5
+execute 'remount-tmp' do
+  command 'mount -o remount,nodev,nosuid,noexec /tmp'
+  action :nothing
+end
+
+append_if_no_line 'set nodev nosuid and noexec for /tmp in fstab' do
+  path '/etc/fstab'
+  line 'tmpfs /tmp tmpfs nodev,nosuid,noexec 0 0'
+  notifies :run, 'execute[remount-tmp]', :immediately
+end
+
+# Benchmarks: 1.1.6 - 1.1.9
+# Benchmark states to add 'defults' and 'seclabel' to the 4th postion of the 'fstab' line, however this has been omitted because it is felt to be unessasary. 
 execute 'remount-dev-shm' do
   command 'mount -o remount,nodev,nosuid,noexec /dev/shm'
   action :nothing
@@ -29,15 +42,76 @@ append_if_no_line 'set nodev nosuid and noexec for /dev/shm in fstab' do
   notifies :run, 'execute[remount-dev-shm]', :immediately
 end
 
-# Benchmark: 1.1.21
+#Benchmark 1.1.12 - 1.1.14
+
+if mount_check = ' findmnt -n /var/tmp | grep -v nodev > /dev/null 2>&1' != ""
+
+
+  execute 'remount-var-tmp' do
+    command 'mount -o remount,nodev,nosuid,noexec /var/tmp'
+    action :nothing
+  end
+
+  append_if_no_line 'set nodev nosuid and noexec for /var/tmp in fstab' do
+    path '/etc/fstab'
+    line 'tmpfs /var/tmp tmpfs nodev,nosuid,noexec 0 0'
+    notifies :run, 'execute[remount-var-tmp]', :immediately
+  end
+end
+
+#Benchmark 1.1.18
+if mount_check = `findmnt -n /home | grep -v nodev > /dev/null 2>&1` != ""
+
+
+  execute 'remount-home' do
+    command 'mount -o remount,nodev,nosuid,noexec /home'
+    action :nothing
+  end
+
+  append_if_no_line 'set nodev nosuid and noexec for /home in fstab' do
+    path '/etc/fstab'
+    line 'tmpfs /home tmpfs nodev,nosuid,noexec 0 0'
+    notifies :run, 'execute[remount-home]', :immediately
+  end
+end
+
+# Benchmark : 1.1.22
+
+  stickybit-check = `df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
+  -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null`
+
+
+if stickybit-check != ""?
+  execute 'stickybit-set' do 
+    command "df --local -P | awk '{if (NR!=1) print $6}' | xargs -I '{}' find '{}' -xdev 
+    -type d \( -perm -0002 -a ! -perm -1000 \) 2>/dev/null | xargs -I '{}' chmod 
+    a+t '{}'"
+    action :immediately
+  end
+end
+
+# Benchmark: 1.1.23
 service 'autofs' do
   action :disable
 end
+
+
 
 # Benchmark: 1.4.1
 file '/boot/grub/grub.cfg' do
   mode '0400'
 end
+
+# Benchmark: 1.2.2
+execute 'Disable the rhnsd Daemon ' do 
+  command 'systemctl --now disable rhnsd'
+  action :run
+end
+
+# Benchmark: 1.2.4
+execute 'Ensure gpgcheck is globally activated' do 
+  
+
 
 # Benchmark: 1.5.1
 append_if_no_line 'hard core 0' do
