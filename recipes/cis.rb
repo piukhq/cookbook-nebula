@@ -281,22 +281,3 @@ node['users']['active'].each do |u|
     end
   end
 end
-
-# Fix login.defs
-replace_or_add 'login.defs-PASS_MAX_DAYS' do
-  path '/etc/login.defs'
-  pattern 'PASS_MAX_DAYS.+'
-  line 'PASS_MAX_DAYS 60'
-end
-
-replace_or_add 'login.defs-PASS_MIN_DAYS' do
-  path '/etc/login.defs'
-  pattern 'PASS_MIN_DAYS.+'
-  line 'PASS_MIN_DAYS 7'
-end
-
-replace_or_add 'login.defs-UMASK' do
-  path '/etc/login.defs'
-  pattern 'UMASK.+'
-  line 'UMASK 027'
-end
